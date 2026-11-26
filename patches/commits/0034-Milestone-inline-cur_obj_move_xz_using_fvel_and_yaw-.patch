@@ -1,0 +1,38 @@
+From 5baae9961a389b0d5c64ebb88bd5e2c05bf71f67 Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 16:49:20 +0000
+Subject: [PATCH 34/58] Milestone: inline cur_obj_move_xz_using_fvel_and_yaw -
+ console speedup test
+
+---
+ src/engine/behavior_script.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/src/engine/behavior_script.c b/src/engine/behavior_script.c
+index 8cfc35a..3dea1ec 100644
+--- a/src/engine/behavior_script.c
++++ b/src/engine/behavior_script.c
+@@ -11,7 +11,7 @@
+ #include "game/obj_behaviors_2.h"
+ #include "game/object_helpers.h"
+ #include "game/object_list_processor.h"
+-#include "graph_node.h"
++#include "engine/math_util.h"
+ #include "surface_collision.h"
+ 
+ // Macros for retrieving arguments from behavior scripts.
+@@ -969,7 +969,10 @@ void cur_obj_update(void) {
+         gCurrentObject->oFaceAngleYaw = gCurrentObject->oMoveAngleYaw;
+     }
+     if (objFlags & OBJ_FLAG_MOVE_XZ_USING_FVEL) {
+-        cur_obj_move_xz_using_fvel_and_yaw();
++        gCurrentObject->oVelX = gCurrentObject->oForwardVel * sins(gCurrentObject->oMoveAngleYaw);
++        gCurrentObject->oVelZ = gCurrentObject->oForwardVel * coss(gCurrentObject->oMoveAngleYaw);
++        gCurrentObject->oPosX += gCurrentObject->oVelX;
++        gCurrentObject->oPosZ += gCurrentObject->oVelZ;
+     }
+ 
+     if (objFlags & OBJ_FLAG_MOVE_Y_WITH_TERMINAL_VEL) {
+-- 
+2.56.1
+

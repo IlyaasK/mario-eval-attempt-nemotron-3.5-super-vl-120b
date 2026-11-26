@@ -1,0 +1,28 @@
+From e5816aa2f368fa3e06e8e12ac72e3717345e14bc Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 18:37:11 +0000
+Subject: [PATCH 42/58] Compile graph_node.o at -Os for I-cache fit
+
+graph_node.c contains geo_call_global_function_nodes_helper which traverses
+the scene graph every frame. -Os reduces code size to fit better in the
+16 KB direct-mapped I-cache.
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 4c927b1..69938c9 100644
+--- a/Makefile
++++ b/Makefile
+@@ -749,7 +749,7 @@ ifeq ($(COMPILER),ido)
+   $(BUILD_DIR)/src/goddard/%.o:      OPT_FLAGS := -g
+   $(BUILD_DIR)/src/goddard/%.o:      MIPSISET := -mips1
+   $(BUILD_DIR)/src/game/rendering_graph_node.o: OPT_FLAGS := -Os
+-  $(BUILD_DIR)/src/engine/graph_node.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/engine/graph_node.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/engine/surface_collision.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/engine/math_util.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/game/obj_behaviors_2.o: OPT_FLAGS := -Os
+-- 
+2.56.1
+

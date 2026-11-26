@@ -1,0 +1,25 @@
+From c8a14da3daf7bee3aae98006fe9e6324ef6da5b8 Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 12:54:43 +0000
+Subject: [PATCH 24/58] Milestone: GCC compiler + multiple files at -O3
+
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 86c8a6a..12e7572 100644
+--- a/Makefile
++++ b/Makefile
+@@ -750,7 +750,7 @@ ifeq ($(COMPILER),ido)
+   $(BUILD_DIR)/src/goddard/%.o:      MIPSISET := -mips1
+   $(BUILD_DIR)/src/game/rendering_graph_node.o: OPT_FLAGS := -O3
+   $(BUILD_DIR)/src/engine/graph_node.o: OPT_FLAGS := -O2
+-  $(BUILD_DIR)/src/engine/surface_collision.o: OPT_FLAGS := -O3
++  $(BUILD_DIR)/src/engine/surface_collision.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/engine/math_util.o: OPT_FLAGS := -O3
+   $(BUILD_DIR)/src/game/obj_behaviors_2.o: OPT_FLAGS := -O3
+   $(BUILD_DIR)/src/game/object_helpers.o: OPT_FLAGS := -O3
+-- 
+2.56.1
+

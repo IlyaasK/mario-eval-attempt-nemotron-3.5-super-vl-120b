@@ -1,0 +1,25 @@
+From b2c23b72193bb840bec98d751a5ddf1d28ea4145 Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 12:36:02 +0000
+Subject: [PATCH 22/58] Milestone: GCC compiler + math_util.c -O3
+
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 542ed52..663b442 100644
+--- a/Makefile
++++ b/Makefile
+@@ -754,7 +754,7 @@ ifeq ($(COMPILER),ido)
+   $(BUILD_DIR)/src/engine/math_util.o: OPT_FLAGS := -O3
+   $(BUILD_DIR)/src/game/obj_behaviors_2.o: OPT_FLAGS := -O3
+   $(BUILD_DIR)/src/game/object_helpers.o: OPT_FLAGS := -O3
+-  $(BUILD_DIR)/src/game/camera.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/game/camera.o: OPT_FLAGS := -O3
+   $(BUILD_DIR)/src/engine/behavior_script.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/engine/behavior_script.o: OPT_FLAGS := -O3
+   $(BUILD_DIR)/src/game/main.o: OPT_FLAGS := -O2
+-- 
+2.56.1
+

@@ -1,0 +1,32 @@
+From d812dec79ba8a9d63540bafde84d7a7ed687eb22 Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 19:02:32 +0000
+Subject: [PATCH 49/58] Compile per-frame hot files at -Os for I-cache fit
+
+area.c, level_update.c, memory.c, object_list_processor.c, print.c, hud.c
+all run every frame during game loop. -Os reduces code size to fit better
+in the 16 KB direct-mapped I-cache.
+---
+ Makefile | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index e2ec919..adf6774 100644
+--- a/Makefile
++++ b/Makefile
+@@ -761,6 +761,12 @@ ifeq ($(COMPILER),ido)
+   $(BUILD_DIR)/src/engine/level_script.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/game/mario.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/game/obj_behaviors.o: OPT_FLAGS := -Os
++  $(BUILD_DIR)/src/game/area.o: OPT_FLAGS := -Os
++  $(BUILD_DIR)/src/game/level_update.o: OPT_FLAGS := -Os
++  $(BUILD_DIR)/src/game/memory.o: OPT_FLAGS := -Os
++  $(BUILD_DIR)/src/game/object_list_processor.o: OPT_FLAGS := -Os
++  $(BUILD_DIR)/src/game/print.o: OPT_FLAGS := -Os
++  $(BUILD_DIR)/src/game/hud.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/audio/playback.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/audio/effects.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/audio/seqplayer.o: OPT_FLAGS := -O2
+-- 
+2.56.1
+

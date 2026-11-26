@@ -1,0 +1,30 @@
+From e11cdfefaf8afa7d9dbdd232396ab4f284f8c3f3 Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 17:27:23 +0000
+Subject: [PATCH 35/58] Fix surface_collision.o OPT_FLAGS duplicate: was -O3,
+ now -Os
+
+Duplicate Makefile entry for surface_collision.o: line 753 (-Os) was
+overridden by line 769 (-O3). Since surface_collision.c contains hot
+functions (find_floor_from_list at 4.94% CPU) and code size matters
+for the 16 KB direct-mapped I-cache, compile it at -Os.
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 833cff4..4c927b1 100644
+--- a/Makefile
++++ b/Makefile
+@@ -766,7 +766,7 @@ ifeq ($(COMPILER),ido)
+   $(BUILD_DIR)/src/audio/effects.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/audio/seqplayer.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/audio/external.o: OPT_FLAGS := -O2
+-  $(BUILD_DIR)/src/engine/surface_collision.o: OPT_FLAGS := -O3
++  $(BUILD_DIR)/src/engine/surface_collision.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/lib/src/math/ll%.o:   MIPSISET := -mips3 -32
+   $(BUILD_DIR)/lib/src/ldiv.o:       OPT_FLAGS := -O2
+   $(BUILD_DIR)/lib/src/string.o:     OPT_FLAGS := -O2
+-- 
+2.56.1
+

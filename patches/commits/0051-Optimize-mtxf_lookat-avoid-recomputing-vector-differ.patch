@@ -1,0 +1,49 @@
+From a690b764d2dedf93927014973ad781172805dd7c Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 19:15:53 +0000
+Subject: [PATCH 51/58] Optimize mtxf_lookat: avoid recomputing vector
+ differences
+
+Save raw to/from differences before normalizing dx/dz, then reuse them
+for xColZ/yColZ/zColZ instead of recomputing to[0]-from[0] etc. Saves 3
+subtractions per call. mtxf_lookat called per-camera per-frame.
+---
+ src/engine/math_util.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
+
+diff --git a/src/engine/math_util.c b/src/engine/math_util.c
+index 6b35d6a..5b7ab87 100644
+--- a/src/engine/math_util.c
++++ b/src/engine/math_util.c
+@@ -205,8 +205,13 @@ void mtxf_lookat(Mat4 mtx, Vec3f from, Vec3f to, s16 roll) {
+     f32 yColX;
+     f32 zColX;
+ 
+-    dx = to[0] - from[0];
+-    dz = to[2] - from[2];
++    // Save raw differences before normalizing dx/dz
++    f32 rawDx = to[0] - from[0];
++    f32 rawDy = to[1] - from[1];
++    f32 rawDz = to[2] - from[2];
++
++    dx = rawDx;
++    dz = rawDz;
+ 
+     invLength = -1.0 / sqrtf(dx * dx + dz * dz);
+     dx *= invLength;
+@@ -216,9 +221,9 @@ void mtxf_lookat(Mat4 mtx, Vec3f from, Vec3f to, s16 roll) {
+     xColY = sins(roll) * dz;
+     zColY = -sins(roll) * dx;
+ 
+-    xColZ = to[0] - from[0];
+-    yColZ = to[1] - from[1];
+-    zColZ = to[2] - from[2];
++    xColZ = rawDx;
++    yColZ = rawDy;
++    zColZ = rawDz;
+ 
+     invLength = -1.0 / sqrtf(xColZ * xColZ + yColZ * yColZ + zColZ * zColZ);
+     xColZ *= invLength;
+-- 
+2.56.1
+

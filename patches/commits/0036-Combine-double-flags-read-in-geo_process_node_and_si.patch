@@ -1,0 +1,32 @@
+From 58234426e15944caf9b44516b85eecbda82d0c24 Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 17:45:05 +0000
+Subject: [PATCH 36/58] Combine double flags read in
+ geo_process_node_and_siblings
+
+Read curGraphNode->flags once into a register instead of twice,
+saving one D-cache line load per node iteration. geo_process_node_and_siblings
+is at 10.01% CPU - biggest remaining hotspot.
+---
+ src/game/rendering_graph_node.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/game/rendering_graph_node.c b/src/game/rendering_graph_node.c
+index 11077c9..5a5b465 100644
+--- a/src/game/rendering_graph_node.c
++++ b/src/game/rendering_graph_node.c
+@@ -1009,8 +1009,9 @@ void geo_process_node_and_siblings(struct GraphNode *firstNode) {
+     }
+ 
+     do {
+-        if (curGraphNode->flags & GRAPH_RENDER_ACTIVE) {
+-            if (curGraphNode->flags & GRAPH_RENDER_CHILDREN_FIRST) {
++        register u32 flags = curGraphNode->flags;
++        if (flags & GRAPH_RENDER_ACTIVE) {
++            if (flags & GRAPH_RENDER_CHILDREN_FIRST) {
+                 geo_try_process_children(curGraphNode);
+             } else {
+                 switch (curGraphNode->type) {
+-- 
+2.56.1
+

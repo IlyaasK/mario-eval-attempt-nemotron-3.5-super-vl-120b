@@ -1,0 +1,26 @@
+From 9c3f056cf5176729bee812e060ae4599c5c38b8a Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 14:42:16 +0000
+Subject: [PATCH 28/58] Milestone: rendering_graph_node.o at -Os - console
+ speedup 1.4276x
+
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 255c27c..0d99dd1 100644
+--- a/Makefile
++++ b/Makefile
+@@ -748,7 +748,7 @@ ifeq ($(COMPILER),ido)
+   $(BUILD_DIR)/bin/%.o:              OPT_FLAGS := -g
+   $(BUILD_DIR)/src/goddard/%.o:      OPT_FLAGS := -g
+   $(BUILD_DIR)/src/goddard/%.o:      MIPSISET := -mips1
+-  $(BUILD_DIR)/src/game/rendering_graph_node.o: OPT_FLAGS := -O3
++  $(BUILD_DIR)/src/game/rendering_graph_node.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/engine/graph_node.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/engine/surface_collision.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/engine/math_util.o: OPT_FLAGS := -O3
+-- 
+2.56.1
+

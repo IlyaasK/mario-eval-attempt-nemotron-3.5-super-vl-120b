@@ -1,0 +1,26 @@
+From 22c8b011d9071a46c1228193e18faba9b02cc965 Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 19:34:52 +0000
+Subject: [PATCH 57/58] Compile geo_layout.o at -Os for I-cache fit
+
+geo_layout.c processes scene graph layout every frame. -Os reduces code
+size to fit better in the 16 KB direct-mapped I-cache.
+---
+ Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Makefile b/Makefile
+index bba04de..80b75b5 100644
+--- a/Makefile
++++ b/Makefile
+@@ -773,6 +773,7 @@ ifeq ($(COMPILER),ido)
+   $(BUILD_DIR)/src/audio/external.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/engine/surface_collision.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/game/behavior_actions.o: OPT_FLAGS := -Os
++  $(BUILD_DIR)/src/engine/geo_layout.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/game/envfx_bubbles.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/game/envfx_snow.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/game/ingame_menu.o: OPT_FLAGS := -Os
+-- 
+2.56.1
+

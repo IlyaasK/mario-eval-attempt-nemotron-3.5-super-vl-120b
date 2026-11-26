@@ -1,0 +1,29 @@
+From f5eb579338d7c8c2aa2a1c807f00a87b37921d78 Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 19:21:44 +0000
+Subject: [PATCH 53/58] Compile envfx_bubbles.o and envfx_snow.o at -Os for
+ I-cache fit
+
+envfx_bubbles.c and envfx_snow.c contain per-frame water/snow effect
+updates. -Os reduces code size to fit better in the 16 KB direct-mapped
+I-cache.
+---
+ Makefile | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index 191da87..f2c54d1 100644
+--- a/Makefile
++++ b/Makefile
+@@ -773,6 +773,8 @@ ifeq ($(COMPILER),ido)
+   $(BUILD_DIR)/src/audio/external.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/engine/surface_collision.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/game/behavior_actions.o: OPT_FLAGS := -Os
++  $(BUILD_DIR)/src/game/envfx_bubbles.o: OPT_FLAGS := -Os
++  $(BUILD_DIR)/src/game/envfx_snow.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/lib/src/math/ll%.o:   MIPSISET := -mips3 -32
+   $(BUILD_DIR)/lib/src/ldiv.o:       OPT_FLAGS := -O2
+   $(BUILD_DIR)/lib/src/string.o:     OPT_FLAGS := -O2
+-- 
+2.56.1
+

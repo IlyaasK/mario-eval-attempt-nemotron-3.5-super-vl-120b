@@ -1,0 +1,29 @@
+From e6966342ee274b2f17a9635572706078dd7247ec Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 19:26:50 +0000
+Subject: [PATCH 56/58] Compile crash_screen.o and rumble_init.o at -Os for
+ I-cache fit
+
+crash_screen.c runs during crash/error handling. rumble_init.c runs
+during controller rumble initialization. -Os reduces code size to fit
+better in the 16 KB direct-mapped I-cache.
+---
+ Makefile | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index 9d91a0b..bba04de 100644
+--- a/Makefile
++++ b/Makefile
+@@ -777,6 +777,8 @@ ifeq ($(COMPILER),ido)
+   $(BUILD_DIR)/src/game/envfx_snow.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/game/ingame_menu.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/game/debug.o: OPT_FLAGS := -Os
++  $(BUILD_DIR)/src/game/crash_screen.o: OPT_FLAGS := -Os
++  $(BUILD_DIR)/src/game/rumble_init.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/lib/src/math/ll%.o:   MIPSISET := -mips3 -32
+   $(BUILD_DIR)/lib/src/ldiv.o:       OPT_FLAGS := -O2
+   $(BUILD_DIR)/lib/src/string.o:     OPT_FLAGS := -O2
+-- 
+2.56.1
+

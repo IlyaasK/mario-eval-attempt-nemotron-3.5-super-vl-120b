@@ -1,0 +1,25 @@
+From f7f1990d63a0329673e6813f8001bf30573a05cf Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Tue, 24 Nov 2026 23:13:09 +0000
+Subject: [PATCH 10/58] Milestone: -O2 per-file on level_geo.c
+
+Console: 1.2091x under IDO (graded compiler), all gates pass.
+---
+ Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Makefile b/Makefile
+index 18075d2..0a3c391 100644
+--- a/Makefile
++++ b/Makefile
+@@ -753,6 +753,7 @@ ifeq ($(COMPILER),ido)
+   $(BUILD_DIR)/src/game/object_helpers.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/game/camera.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/engine/behavior_script.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/game/level_geo.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/engine/level_script.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/game/mario.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/audio/playback.o: OPT_FLAGS := -O2
+-- 
+2.56.1
+

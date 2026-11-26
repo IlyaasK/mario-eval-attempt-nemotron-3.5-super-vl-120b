@@ -1,0 +1,49 @@
+From c8e67ea74b1b09776a5aadc20a2ab474ac7e2cbb Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Tue, 24 Nov 2026 22:37:54 +0000
+Subject: [PATCH 02/58] Milestone: collision Y-bounds pre-filter
+
+Add Y-bounds pre-filter to find_ceil_from_list and find_floor_from_list
+(sanctioned: returns same winning surfaces, skips triangles whose Y range
+cannot contain the result). Bob CPU 27.2->27.1ms, memory footprint unchanged.
+
+Console: 1.1171x under IDO, all gates pass.
+---
+ src/engine/surface_collision.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/src/engine/surface_collision.c b/src/engine/surface_collision.c
+index 741307b..bbaafee 100644
+--- a/src/engine/surface_collision.c
++++ b/src/engine/surface_collision.c
+@@ -235,6 +235,13 @@ static struct Surface *find_ceil_from_list(struct SurfaceNode *surfaceNode, s32
+         surf = surfaceNode->surface;
+         surfaceNode = surfaceNode->next;
+ 
++        // Y-bounds pre-filter: skip triangles that cannot contain a ceiling at
++        // this height. The ceiling test accepts height >= y - 78, so a triangle
++        // whose highest point is below y - 78 can never qualify.
++        if (y > surf->upperY + 78) {
++            continue;
++        }
++
+         x1 = surf->vertex1[0];
+         z1 = surf->vertex1[2];
+         z2 = surf->vertex2[2];
+@@ -411,6 +418,13 @@ static struct Surface *find_floor_from_list(struct SurfaceNode *surfaceNode, s32
+         surf = surfaceNode->surface;
+         surfaceNode = surfaceNode->next;
+ 
++        // Y-bounds pre-filter: skip triangles that cannot contain a floor at
++        // this height. The floor test below accepts height <= y + 78, so a
++        // triangle whose lowest point is above y + 78 can never qualify.
++        if (y < surf->lowerY - 78) {
++            continue;
++        }
++
+         x1 = surf->vertex1[0];
+         z1 = surf->vertex1[2];
+         x2 = surf->vertex2[0];
+-- 
+2.56.1
+

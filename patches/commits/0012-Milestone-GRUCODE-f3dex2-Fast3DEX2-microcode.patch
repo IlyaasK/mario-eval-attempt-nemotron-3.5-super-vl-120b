@@ -1,0 +1,27 @@
+From 2d16d86bec77fb1ce7e2580af1c2d83fb56ef4c9 Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 02:11:17 +0000
+Subject: [PATCH 12/58] Milestone: GRUCODE=f3dex2 (Fast3DEX2 microcode)
+
+Console: 1.2405x under IDO (graded compiler), all gates pass.
+RSP gfx on bob dropped from 20.13ms to ~11.8ms.
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 3ffce78..54436a4 100644
+--- a/Makefile
++++ b/Makefile
+@@ -45,7 +45,7 @@ ifeq      ($(VERSION),jp)
+ else ifeq ($(VERSION),us)
+   DEFINES   += VERSION_US=1
+   OPT_FLAGS := -g
+-  GRUCODE   ?= f3d_old
++  GRUCODE   ?= f3dex2
+   VERSION_JP_US  ?= true
+   VERSION_SH_CN  ?= false
+ else ifeq ($(VERSION),eu)
+-- 
+2.56.1
+

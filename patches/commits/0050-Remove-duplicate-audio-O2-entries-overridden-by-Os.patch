@@ -1,0 +1,33 @@
+From 23f6746178c80b7192b74791fd37a108821679cb Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 19:09:16 +0000
+Subject: [PATCH 50/58] Remove duplicate audio -O2 entries (overridden by -Os)
+
+Clean up duplicate audio file OPT_FLAGS entries. The -Os entries added
+after -O2 already made them compile at -Os effectively.
+---
+ Makefile | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index adf6774..57dfbaf 100644
+--- a/Makefile
++++ b/Makefile
+@@ -767,10 +767,10 @@ ifeq ($(COMPILER),ido)
+   $(BUILD_DIR)/src/game/object_list_processor.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/game/print.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/game/hud.o: OPT_FLAGS := -Os
+-  $(BUILD_DIR)/src/audio/playback.o: OPT_FLAGS := -O2
+-  $(BUILD_DIR)/src/audio/effects.o: OPT_FLAGS := -O2
+-  $(BUILD_DIR)/src/audio/seqplayer.o: OPT_FLAGS := -O2
+-  $(BUILD_DIR)/src/audio/external.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/audio/playback.o: OPT_FLAGS := -Os
++  $(BUILD_DIR)/src/audio/effects.o: OPT_FLAGS := -Os
++  $(BUILD_DIR)/src/audio/seqplayer.o: OPT_FLAGS := -Os
++  $(BUILD_DIR)/src/audio/external.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/engine/surface_collision.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/lib/src/math/ll%.o:   MIPSISET := -mips3 -32
+   $(BUILD_DIR)/lib/src/ldiv.o:       OPT_FLAGS := -O2
+-- 
+2.56.1
+

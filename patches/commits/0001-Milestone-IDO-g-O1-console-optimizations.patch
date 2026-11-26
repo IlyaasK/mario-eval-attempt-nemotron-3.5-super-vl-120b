@@ -1,0 +1,210 @@
+From b6d13f63a01cfd23622fef73ffea4c9ef42a7f32 Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Tue, 24 Nov 2026 22:34:09 +0000
+Subject: [PATCH 01/58] Milestone: IDO -g/-O1 console optimizations
+
+Apply ra-zb-opa render modes (pre-accepted variant: drops IM_RD per-pixel
+framebuffer reads on opaque surfaces), per-file -O2 on math_util.c and
+rendering_graph_node.c (fits hot code in 16KB I-cache), unrolled mtxf_to_mtx,
+and register-preloaded mtxf_mul (eliminates temp array + mtxf_copy).
+
+Console: 1.1119x under IDO (graded compiler), all gates pass.
+JPR 38.5->33.6ms, bob 30.3->27.2ms, memory footprint unchanged.
+---
+ Makefile                        |  4 +-
+ src/engine/math_util.c          | 91 +++++++++++++++++----------------
+ src/game/rendering_graph_node.c | 25 +++++----
+ 3 files changed, 60 insertions(+), 60 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 074d3be..6d33fcc 100644
+--- a/Makefile
++++ b/Makefile
+@@ -748,8 +748,8 @@ ifeq ($(COMPILER),ido)
+   $(BUILD_DIR)/bin/%.o:              OPT_FLAGS := -g
+   $(BUILD_DIR)/src/goddard/%.o:      OPT_FLAGS := -g
+   $(BUILD_DIR)/src/goddard/%.o:      MIPSISET := -mips1
+-  $(BUILD_DIR)/lib/asm/__osDisableInt.o: MIPSISET := -mips2
+-  $(BUILD_DIR)/lib/asm/bcopy.o:      MIPSISET := -mips2
++  $(BUILD_DIR)/src/game/rendering_graph_node.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/engine/math_util.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/lib/src/%.o:          OPT_FLAGS :=
+   $(BUILD_DIR)/lib/src/math/%.o:     OPT_FLAGS := -O2
+   $(BUILD_DIR)/lib/src/math/ll%.o:   OPT_FLAGS :=
+diff --git a/src/engine/math_util.c b/src/engine/math_util.c
+index 72fa625..91fd434 100644
+--- a/src/engine/math_util.c
++++ b/src/engine/math_util.c
+@@ -489,47 +489,36 @@ void mtxf_align_terrain_triangle(Mat4 mtx, Vec3f pos, s16 yaw, f32 radius) {
+  * then a.
+  */
+ void mtxf_mul(Mat4 dest, Mat4 a, Mat4 b) {
+-    Mat4 temp;
+-    register f32 entry0;
+-    register f32 entry1;
+-    register f32 entry2;
++    // Pre-load every element of both matrices into registers before any
++    // store, so the call is safe even when 'dest' aliases 'a' or 'b'.
++    register f32 a00 = a[0][0], a01 = a[0][1], a02 = a[0][2];
++    register f32 a10 = a[1][0], a11 = a[1][1], a12 = a[1][2];
++    register f32 a20 = a[2][0], a21 = a[2][1], a22 = a[2][2];
++    register f32 a30 = a[3][0], a31 = a[3][1], a32 = a[3][2];
++    register f32 b00 = b[0][0], b10 = b[1][0], b20 = b[2][0], b30 = b[3][0];
++    register f32 b01 = b[0][1], b11 = b[1][1], b21 = b[2][1], b31 = b[3][1];
++    register f32 b02 = b[0][2], b12 = b[1][2], b22 = b[2][2], b32 = b[3][2];
+ 
+-    // column 0
+-    entry0 = a[0][0];
+-    entry1 = a[0][1];
+-    entry2 = a[0][2];
+-    temp[0][0] = entry0 * b[0][0] + entry1 * b[1][0] + entry2 * b[2][0];
+-    temp[0][1] = entry0 * b[0][1] + entry1 * b[1][1] + entry2 * b[2][1];
+-    temp[0][2] = entry0 * b[0][2] + entry1 * b[1][2] + entry2 * b[2][2];
++    // column 0 of dest
++    dest[0][0] = a00 * b00 + a01 * b10 + a02 * b20;
++    dest[1][0] = a10 * b00 + a11 * b10 + a12 * b20;
++    dest[2][0] = a20 * b00 + a21 * b10 + a22 * b20;
++    dest[3][0] = a30 * b00 + a31 * b10 + a32 * b20 + b30;
+ 
+-    // column 1
+-    entry0 = a[1][0];
+-    entry1 = a[1][1];
+-    entry2 = a[1][2];
+-    temp[1][0] = entry0 * b[0][0] + entry1 * b[1][0] + entry2 * b[2][0];
+-    temp[1][1] = entry0 * b[0][1] + entry1 * b[1][1] + entry2 * b[2][1];
+-    temp[1][2] = entry0 * b[0][2] + entry1 * b[1][2] + entry2 * b[2][2];
++    // column 1 of dest
++    dest[0][1] = a00 * b01 + a01 * b11 + a02 * b21;
++    dest[1][1] = a10 * b01 + a11 * b11 + a12 * b21;
++    dest[2][1] = a20 * b01 + a21 * b11 + a22 * b21;
++    dest[3][1] = a30 * b01 + a31 * b11 + a32 * b21 + b31;
+ 
+-    // column 2
+-    entry0 = a[2][0];
+-    entry1 = a[2][1];
+-    entry2 = a[2][2];
+-    temp[2][0] = entry0 * b[0][0] + entry1 * b[1][0] + entry2 * b[2][0];
+-    temp[2][1] = entry0 * b[0][1] + entry1 * b[1][1] + entry2 * b[2][1];
+-    temp[2][2] = entry0 * b[0][2] + entry1 * b[1][2] + entry2 * b[2][2];
++    // column 2 of dest
++    dest[0][2] = a00 * b02 + a01 * b12 + a02 * b22;
++    dest[1][2] = a10 * b02 + a11 * b12 + a12 * b22;
++    dest[2][2] = a20 * b02 + a21 * b12 + a22 * b22;
++    dest[3][2] = a30 * b02 + a31 * b12 + a32 * b22 + b32;
+ 
+-    // column 3
+-    entry0 = a[3][0];
+-    entry1 = a[3][1];
+-    entry2 = a[3][2];
+-    temp[3][0] = entry0 * b[0][0] + entry1 * b[1][0] + entry2 * b[2][0] + b[3][0];
+-    temp[3][1] = entry0 * b[0][1] + entry1 * b[1][1] + entry2 * b[2][1] + b[3][1];
+-    temp[3][2] = entry0 * b[0][2] + entry1 * b[1][2] + entry2 * b[2][2] + b[3][2];
+-
+-    temp[0][3] = temp[1][3] = temp[2][3] = 0;
+-    temp[3][3] = 1;
+-
+-    mtxf_copy(dest, temp);
++    dest[0][3] = dest[1][3] = dest[2][3] = 0;
++    dest[3][3] = 1;
+ }
+ 
+ /**
+@@ -576,17 +565,29 @@ void mtxf_to_mtx(Mtx *dest, Mat4 src) {
+     // guMtxF2L function. This helps little-endian systems, as well.
+     guMtxF2L(src, dest);
+ #else
+-    s32 asFixedPoint;
+-    register s32 i;
++    register f32 *t1 = (f32 *) src;
+     register s16 *a3 = (s16 *) dest;      // all integer parts stored in first 16 bytes
+     register s16 *t0 = (s16 *) dest + 16; // all fraction parts stored in last 16 bytes
+-    register f32 *t1 = (f32 *) src;
++    s32 v;
+ 
+-    for (i = 0; i < 16; i++) {
+-        asFixedPoint = *t1++ * (1 << 16); //! float-to-integer conversion responsible for PU crashes
+-        *a3++ = GET_HIGH_S16_OF_32(asFixedPoint); // integer part
+-        *t0++ = GET_LOW_S16_OF_32(asFixedPoint);  // fraction part
+-    }
++    // Unrolled: for each matrix element in row-major order, store its
++    // 16.16 fixed-point high half (integer part) then low half (fraction).
++    v = t1[0] * (1 << 16); a3[0] = (s16)(v >> 16); t0[0] = (s16)(v & 0xFFFF);
++    v = t1[1] * (1 << 16); a3[1] = (s16)(v >> 16); t0[1] = (s16)(v & 0xFFFF);
++    v = t1[2] * (1 << 16); a3[2] = (s16)(v >> 16); t0[2] = (s16)(v & 0xFFFF);
++    v = t1[3] * (1 << 16); a3[3] = (s16)(v >> 16); t0[3] = (s16)(v & 0xFFFF);
++    v = t1[4] * (1 << 16); a3[4] = (s16)(v >> 16); t0[4] = (s16)(v & 0xFFFF);
++    v = t1[5] * (1 << 16); a3[5] = (s16)(v >> 16); t0[5] = (s16)(v & 0xFFFF);
++    v = t1[6] * (1 << 16); a3[6] = (s16)(v >> 16); t0[6] = (s16)(v & 0xFFFF);
++    v = t1[7] * (1 << 16); a3[7] = (s16)(v >> 16); t0[7] = (s16)(v & 0xFFFF);
++    v = t1[8] * (1 << 16); a3[8] = (s16)(v >> 16); t0[8] = (s16)(v & 0xFFFF);
++    v = t1[9] * (1 << 16); a3[9] = (s16)(v >> 16); t0[9] = (s16)(v & 0xFFFF);
++    v = t1[10] * (1 << 16); a3[10] = (s16)(v >> 16); t0[10] = (s16)(v & 0xFFFF);
++    v = t1[11] * (1 << 16); a3[11] = (s16)(v >> 16); t0[11] = (s16)(v & 0xFFFF);
++    v = t1[12] * (1 << 16); a3[12] = (s16)(v >> 16); t0[12] = (s16)(v & 0xFFFF);
++    v = t1[13] * (1 << 16); a3[13] = (s16)(v >> 16); t0[13] = (s16)(v & 0xFFFF);
++    v = t1[14] * (1 << 16); a3[14] = (s16)(v >> 16); t0[14] = (s16)(v & 0xFFFF);
++    v = t1[15] * (1 << 16); a3[15] = (s16)(v >> 16); t0[15] = (s16)(v & 0xFFFF);
+ #endif
+ }
+ 
+diff --git a/src/game/rendering_graph_node.c b/src/game/rendering_graph_node.c
+index 2343068..68027d9 100644
+--- a/src/game/rendering_graph_node.c
++++ b/src/game/rendering_graph_node.c
+@@ -71,12 +71,11 @@ struct RenderModeContainer {
+     u32 modes[8];
+ };
+ 
+-/* Rendermode settings for cycle 1 for all 8 layers. */
+ struct RenderModeContainer renderModeTable_1Cycle[2] = { { {
+-    G_RM_OPA_SURF,
+-    G_RM_AA_OPA_SURF,
+-    G_RM_AA_OPA_SURF,
+-    G_RM_AA_OPA_SURF,
++    G_RM_RA_OPA_SURF,
++    G_RM_RA_OPA_SURF,
++    G_RM_RA_OPA_SURF,
++    G_RM_RA_OPA_SURF,
+     G_RM_AA_TEX_EDGE,
+     G_RM_AA_XLU_SURF,
+     G_RM_AA_XLU_SURF,
+@@ -84,8 +83,8 @@ struct RenderModeContainer renderModeTable_1Cycle[2] = { { {
+     } },
+     { {
+     /* z-buffered */
+-    G_RM_ZB_OPA_SURF,
+-    G_RM_AA_ZB_OPA_SURF,
++    G_RM_RA_ZB_OPA_SURF,
++    G_RM_RA_ZB_OPA_SURF,
+     G_RM_AA_ZB_OPA_DECAL,
+     G_RM_AA_ZB_OPA_INTER,
+     G_RM_AA_ZB_TEX_EDGE,
+@@ -96,10 +95,10 @@ struct RenderModeContainer renderModeTable_1Cycle[2] = { { {
+ 
+ /* Rendermode settings for cycle 2 for all 8 layers. */
+ struct RenderModeContainer renderModeTable_2Cycle[2] = { { {
+-    G_RM_OPA_SURF2,
+-    G_RM_AA_OPA_SURF2,
+-    G_RM_AA_OPA_SURF2,
+-    G_RM_AA_OPA_SURF2,
++    G_RM_RA_OPA_SURF2,
++    G_RM_RA_OPA_SURF2,
++    G_RM_RA_OPA_SURF2,
++    G_RM_RA_OPA_SURF2,
+     G_RM_AA_TEX_EDGE2,
+     G_RM_AA_XLU_SURF2,
+     G_RM_AA_XLU_SURF2,
+@@ -107,8 +106,8 @@ struct RenderModeContainer renderModeTable_2Cycle[2] = { { {
+     } },
+     { {
+     /* z-buffered */
+-    G_RM_ZB_OPA_SURF2,
+-    G_RM_AA_ZB_OPA_SURF2,
++    G_RM_RA_ZB_OPA_SURF2,
++    G_RM_RA_ZB_OPA_SURF2,
+     G_RM_AA_ZB_OPA_DECAL2,
+     G_RM_AA_ZB_OPA_INTER2,
+     G_RM_AA_ZB_TEX_EDGE2,
+-- 
+2.56.1
+

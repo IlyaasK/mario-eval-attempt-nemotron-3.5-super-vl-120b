@@ -1,0 +1,27 @@
+From 03893b5cbb827acb0ff964a020a3d85cb066cc8a Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 02:59:07 +0000
+Subject: [PATCH 14/58] Milestone: graph_node.c + obj_behaviors_2.c at -O2 +
+ f3dex2
+
+Console: 1.2551x under IDO, all gates pass.
+---
+ Makefile | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index 8857a8d..fd8f433 100644
+--- a/Makefile
++++ b/Makefile
+@@ -749,6 +749,8 @@ ifeq ($(COMPILER),ido)
+   $(BUILD_DIR)/src/goddard/%.o:      OPT_FLAGS := -g
+   $(BUILD_DIR)/src/goddard/%.o:      MIPSISET := -mips1
+   $(BUILD_DIR)/src/game/rendering_graph_node.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/engine/graph_node.o: OPT_FLAGS := -O2
++759a  $(BUILD_DIR)/src/game/obj_behaviors_2.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/engine/math_util.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/game/object_helpers.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/game/camera.o: OPT_FLAGS := -O2
+-- 
+2.56.1
+

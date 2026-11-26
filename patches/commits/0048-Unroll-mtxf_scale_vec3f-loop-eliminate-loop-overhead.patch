@@ -1,0 +1,41 @@
+From 112d42fa41659fe57b29cf6090c3abef4fa6be11 Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 18:58:15 +0000
+Subject: [PATCH 48/58] Unroll mtxf_scale_vec3f loop: eliminate loop overhead
+
+Replace loop with direct unrolled per-column scaling. Preloads s[0], s[1],
+s[2] into registers. Saves loop increment/comparison per call.
+mtxf_scale_vec3f called per-object in geo_process_object.
+---
+ src/engine/math_util.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/src/engine/math_util.c b/src/engine/math_util.c
+index e2501c6..6b35d6a 100644
+--- a/src/engine/math_util.c
++++ b/src/engine/math_util.c
+@@ -543,14 +543,14 @@ void mtxf_mul(Mat4 dest, Mat4 a, Mat4 b) {
+  * Set matrix 'dest' to 'mtx' scaled by vector s
+  */
+ void mtxf_scale_vec3f(Mat4 dest, Mat4 mtx, Vec3f s) {
+-    register s32 i;
++    register f32 sx = s[0];
++    register f32 sy = s[1];
++    register f32 sz = s[2];
+ 
+-    for (i = 0; i < 4; i++) {
+-        dest[0][i] = mtx[0][i] * s[0];
+-        dest[1][i] = mtx[1][i] * s[1];
+-        dest[2][i] = mtx[2][i] * s[2];
+-        dest[3][i] = mtx[3][i];
+-    }
++    dest[0][0] = mtx[0][0] * sx; dest[0][1] = mtx[0][1] * sx; dest[0][2] = mtx[0][2] * sx; dest[0][3] = mtx[0][3] * sx;
++    dest[1][0] = mtx[1][0] * sy; dest[1][1] = mtx[1][1] * sy; dest[1][2] = mtx[1][2] * sy; dest[1][3] = mtx[1][3] * sy;
++    dest[2][0] = mtx[2][0] * sz; dest[2][1] = mtx[2][1] * sz; dest[2][2] = mtx[2][2] * sz; dest[2][3] = mtx[2][3] * sz;
++    dest[3][0] = mtx[3][0]; dest[3][1] = mtx[3][1]; dest[3][2] = mtx[3][2]; dest[3][3] = mtx[3][3];
+ }
+ 
+ /**
+-- 
+2.56.1
+

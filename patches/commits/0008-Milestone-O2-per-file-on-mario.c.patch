@@ -1,0 +1,25 @@
+From 702d4b87bbcdc70a35c3a57662ce5e179faae51a Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Tue, 24 Nov 2026 23:06:16 +0000
+Subject: [PATCH 08/58] Milestone: -O2 per-file on mario.c
+
+Console: 1.2177x under IDO (graded compiler), all gates pass.
+---
+ Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Makefile b/Makefile
+index 9ae2947..ac267cd 100644
+--- a/Makefile
++++ b/Makefile
+@@ -753,6 +753,7 @@ ifeq ($(COMPILER),ido)
+   $(BUILD_DIR)/src/game/object_helpers.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/game/camera.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/engine/behavior_script.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/game/mario.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/audio/playback.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/audio/effects.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/audio/seqplayer.o: OPT_FLAGS := -O2
+-- 
+2.56.1
+

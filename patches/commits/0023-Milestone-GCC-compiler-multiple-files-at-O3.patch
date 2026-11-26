@@ -1,0 +1,25 @@
+From 3639a2c5cc7e33c8554ab04ae7d3db72cf1b05ee Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 12:48:30 +0000
+Subject: [PATCH 23/58] Milestone: GCC compiler + multiple files at -O3
+
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 663b442..86c8a6a 100644
+--- a/Makefile
++++ b/Makefile
+@@ -762,7 +762,7 @@ ifeq ($(COMPILER),ido)
+   $(BUILD_DIR)/src/engine/level_script.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/game/mario.o: OPT_FLAGS := -O3
+   $(BUILD_DIR)/src/game/obj_behaviors.o: OPT_FLAGS := -O3
+-  $(BUILD_DIR)/src/game/obj_behaviors.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/game/obj_behaviors.o: OPT_FLAGS := -O3
+   $(BUILD_DIR)/src/audio/playback.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/audio/effects.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/audio/seqplayer.o: OPT_FLAGS := -O2
+-- 
+2.56.1
+

@@ -1,0 +1,25 @@
+From 9baf378ebf0269308a449719fa7336a752996b45 Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 05:22:18 +0000
+Subject: [PATCH 17/58] Milestone: -O3 per-file on surface_collision.c + f3dex2
+
+Console: 1.2622x under IDO, all gates pass.
+---
+ Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Makefile b/Makefile
+index 09e3c39..2103c13 100644
+--- a/Makefile
++++ b/Makefile
+@@ -750,6 +750,7 @@ ifeq ($(COMPILER),ido)
+   $(BUILD_DIR)/src/goddard/%.o:      MIPSISET := -mips1
+   $(BUILD_DIR)/src/game/rendering_graph_node.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/engine/graph_node.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/engine/surface_collision.o: OPT_FLAGS := -O3
+   $(BUILD_DIR)/src/engine/math_util.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/game/obj_behaviors_2.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/game/object_helpers.o: OPT_FLAGS := -O2
+-- 
+2.56.1
+

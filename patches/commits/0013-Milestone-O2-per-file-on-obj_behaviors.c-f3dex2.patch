@@ -1,0 +1,26 @@
+From e4d18090d8eed1d3589d4f24fab32537a95e308b Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 02:44:55 +0000
+Subject: [PATCH 13/58] Milestone: -O2 per-file on obj_behaviors.c + f3dex2
+
+Console: 1.2538x under IDO, all gates pass.
+---
+ Makefile | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index 54436a4..8857a8d 100644
+--- a/Makefile
++++ b/Makefile
+@@ -757,6 +757,8 @@ ifeq ($(COMPILER),ido)
+   $(BUILD_DIR)/src/game/level_geo.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/engine/level_script.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/game/mario.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/game/obj_behaviors.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/game/obj_behaviors.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/audio/playback.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/audio/effects.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/audio/seqplayer.o: OPT_FLAGS := -O2
+-- 
+2.56.1
+

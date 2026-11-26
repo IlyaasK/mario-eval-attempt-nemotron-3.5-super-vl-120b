@@ -1,0 +1,32 @@
+From 8a4692dcf19991cb1b592bd150745d1f16d033e4 Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 13:03:14 +0000
+Subject: [PATCH 25/58] Milestone: cur_obj_move_xz_using_fvel_and_yaw
+ early-exit
+
+---
+ src/game/object_helpers.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/game/object_helpers.c b/src/game/object_helpers.c
+index 54cf24f..447f0cc 100644
+--- a/src/game/object_helpers.c
++++ b/src/game/object_helpers.c
+@@ -1409,9 +1409,13 @@ s16 abs_angle_diff(s16 x0, s16 x1) {
+ }
+ 
+ void cur_obj_move_xz_using_fvel_and_yaw(void) {
++    if (o->oForwardVel == 0.0f) {
++        o->oVelX = 0.0f;
++        o->oVelZ = 0.0f;
++        return;
++    }
+     o->oVelX = o->oForwardVel * sins(o->oMoveAngleYaw);
+     o->oVelZ = o->oForwardVel * coss(o->oMoveAngleYaw);
+-
+     o->oPosX += o->oVelX;
+     o->oPosZ += o->oVelZ;
+ }
+-- 
+2.56.1
+

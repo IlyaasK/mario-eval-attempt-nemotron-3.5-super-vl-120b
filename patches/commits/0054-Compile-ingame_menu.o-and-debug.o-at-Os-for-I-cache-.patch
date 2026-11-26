@@ -1,0 +1,28 @@
+From f01cb3e55f3848779be7d6babd103066cdf90558 Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 19:24:13 +0000
+Subject: [PATCH 54/58] Compile ingame_menu.o and debug.o at -Os for I-cache
+ fit
+
+ingame_menu.c and debug.c run every frame during game loop. -Os reduces
+code size to fit better in the 16 KB direct-mapped I-cache.
+---
+ Makefile | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index f2c54d1..9d91a0b 100644
+--- a/Makefile
++++ b/Makefile
+@@ -775,6 +775,8 @@ ifeq ($(COMPILER),ido)
+   $(BUILD_DIR)/src/game/behavior_actions.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/game/envfx_bubbles.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/game/envfx_snow.o: OPT_FLAGS := -Os
++  $(BUILD_DIR)/src/game/ingame_menu.o: OPT_FLAGS := -Os
++  $(BUILD_DIR)/src/game/debug.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/lib/src/math/ll%.o:   MIPSISET := -mips3 -32
+   $(BUILD_DIR)/lib/src/ldiv.o:       OPT_FLAGS := -O2
+   $(BUILD_DIR)/lib/src/string.o:     OPT_FLAGS := -O2
+-- 
+2.56.1
+

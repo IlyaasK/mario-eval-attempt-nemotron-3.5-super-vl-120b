@@ -1,0 +1,56 @@
+From cc2cf35e066543bb646ef5c4b9240896497330bd Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 15:39:30 +0000
+Subject: [PATCH 29/58] Milestone: math_util.o at -Os + targeted D-cache
+ writeback - console speedup test
+
+---
+ src/game/main.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/src/game/main.c b/src/game/main.c
+index 50301e9..6a45ff8 100644
+--- a/src/game/main.c
++++ b/src/game/main.c
+@@ -419,13 +419,14 @@ void set_vblank_handler(s32 index, struct VblankHandler *handler, OSMesgQueue *q
+ }
+ 
+ void send_sp_task_message(OSMesg *msg) {
+-    osWritebackDCacheAll();
++    osWritebackDCache(msg, sizeof(*msg));
++    osWritebackDCache((void *)*msg, sizeof(struct SPTask));
+     osSendMesg(&gSPTaskMesgQueue, msg, OS_MESG_NOBLOCK);
+ }
+ 
+ void dispatch_audio_sptask(struct SPTask *spTask) {
+     if (sAudioEnabled && spTask != NULL) {
+-        osWritebackDCacheAll();
++        osWritebackDCache(spTask, sizeof(struct SPTask));
+         osSendMesg(&gSPTaskMesgQueue, spTask, OS_MESG_NOBLOCK);
+     }
+ }
+@@ -433,8 +434,8 @@ void dispatch_audio_sptask(struct SPTask *spTask) {
+ #ifndef PLAY
+ s32 exec_audio_sptask_sync(struct SPTask *spTask) {
+     if (sAudioEnabled && spTask != NULL) {
+-        osWritebackDCacheAll();
+-        spTask->state = SPTASK_STATE_NOT_STARTED;
++        osWritebackDCache(spTask, sizeof(struct SPTask));
++        osWritebackDCache(spTask, sizeof(struct SPTask));
+         sCurrentAudioSPTask = spTask;
+         sNextAudioSPTask = NULL;
+         osSendMesg(&gIntrMesgQueue, (OSMesg) MESG_START_AUD_SPTASK, OS_MESG_NOBLOCK);
+@@ -446,8 +447,8 @@ s32 exec_audio_sptask_sync(struct SPTask *spTask) {
+ 
+ void exec_display_list(struct SPTask *spTask) {
+     if (spTask != NULL) {
+-        osWritebackDCacheAll();
+-        spTask->state = SPTASK_STATE_NOT_STARTED;
++        osWritebackDCache(spTask, sizeof(struct SPTask));
++        osWritebackDCache(spTask, sizeof(struct SPTask));
+         if (sCurrentDisplaySPTask == NULL) {
+             sCurrentDisplaySPTask = spTask;
+             sNextDisplaySPTask = NULL;
+-- 
+2.56.1
+

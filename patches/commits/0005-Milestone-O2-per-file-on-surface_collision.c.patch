@@ -1,0 +1,25 @@
+From 6d0063f33d5b899c23bb725d2a869f0231998b9d Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Tue, 24 Nov 2026 22:54:34 +0000
+Subject: [PATCH 05/58] Milestone: -O2 per-file on surface_collision.c
+
+Console: 1.1752x under IDO (graded compiler), all gates pass.
+---
+ Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Makefile b/Makefile
+index 1fdd743..49cdc6c 100644
+--- a/Makefile
++++ b/Makefile
+@@ -753,6 +753,7 @@ ifeq ($(COMPILER),ido)
+   $(BUILD_DIR)/src/game/object_helpers.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/game/camera.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/engine/behavior_script.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/engine/surface_collision.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/lib/src/math/ll%.o:   MIPSISET := -mips3 -32
+   $(BUILD_DIR)/lib/src/ldiv.o:       OPT_FLAGS := -O2
+   $(BUILD_DIR)/lib/src/string.o:     OPT_FLAGS := -O2
+-- 
+2.56.1
+

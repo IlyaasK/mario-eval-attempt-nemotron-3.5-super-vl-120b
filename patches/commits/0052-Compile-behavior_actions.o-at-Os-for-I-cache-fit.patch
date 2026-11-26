@@ -1,0 +1,27 @@
+From 665feabc2fc67490aed4fae517d13de60ba50dcc Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 19:20:27 +0000
+Subject: [PATCH 52/58] Compile behavior_actions.o at -Os for I-cache fit
+
+behavior_actions.c contains behavior command implementations called
+every frame during object behavior script execution. -Os reduces code
+size to fit better in the 16 KB direct-mapped I-cache.
+---
+ Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Makefile b/Makefile
+index 57dfbaf..191da87 100644
+--- a/Makefile
++++ b/Makefile
+@@ -772,6 +772,7 @@ ifeq ($(COMPILER),ido)
+   $(BUILD_DIR)/src/audio/seqplayer.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/audio/external.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/engine/surface_collision.o: OPT_FLAGS := -Os
++  $(BUILD_DIR)/src/game/behavior_actions.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/lib/src/math/ll%.o:   MIPSISET := -mips3 -32
+   $(BUILD_DIR)/lib/src/ldiv.o:       OPT_FLAGS := -O2
+   $(BUILD_DIR)/lib/src/string.o:     OPT_FLAGS := -O2
+-- 
+2.56.1
+

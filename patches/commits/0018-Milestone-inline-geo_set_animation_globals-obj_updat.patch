@@ -1,0 +1,122 @@
+From 9bd862a3ca15e6cfabc9cd4d2e0f8af462e49862 Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 10:28:26 +0000
+Subject: [PATCH 18/58] Milestone: inline geo_set_animation_globals +
+ obj_update_gfx_pos_and_angle + dist_between_objects
+
+---
+ src/engine/behavior_script.c    | 13 +++++++--
+ src/game/rendering_graph_node.c | 52 +++++++++++++++++++++++++++++++--
+ 2 files changed, 60 insertions(+), 5 deletions(-)
+
+diff --git a/src/engine/behavior_script.c b/src/engine/behavior_script.c
+index 3d2fea1..8cfc35a 100644
+--- a/src/engine/behavior_script.c
++++ b/src/engine/behavior_script.c
+@@ -917,7 +917,10 @@ void cur_obj_update(void) {
+ 
+     // Calculate the distance from the object to Mario.
+     if (objFlags & OBJ_FLAG_COMPUTE_DIST_TO_MARIO) {
+-        gCurrentObject->oDistanceToMario = dist_between_objects(gCurrentObject, gMarioObject);
++        f32 dx = gCurrentObject->oPosX - gMarioObject->oPosX;
++        f32 dy = gCurrentObject->oPosY - gMarioObject->oPosY;
++        f32 dz = gCurrentObject->oPosZ - gMarioObject->oPosZ;
++        gCurrentObject->oDistanceToMario = sqrtf(dx * dx + dy * dy + dz * dz);
+         distanceFromMario = gCurrentObject->oDistanceToMario;
+     } else {
+         distanceFromMario = 0.0f;
+@@ -965,7 +968,6 @@ void cur_obj_update(void) {
+     if (objFlags & OBJ_FLAG_SET_FACE_YAW_TO_MOVE_YAW) {
+         gCurrentObject->oFaceAngleYaw = gCurrentObject->oMoveAngleYaw;
+     }
+-
+     if (objFlags & OBJ_FLAG_MOVE_XZ_USING_FVEL) {
+         cur_obj_move_xz_using_fvel_and_yaw();
+     }
+@@ -983,7 +985,12 @@ void cur_obj_update(void) {
+     }
+ 
+     if (objFlags & OBJ_FLAG_UPDATE_GFX_POS_AND_ANGLE) {
+-        obj_update_gfx_pos_and_angle(gCurrentObject);
++        gCurrentObject->header.gfx.pos[0] = gCurrentObject->oPosX;
++        gCurrentObject->header.gfx.pos[1] = gCurrentObject->oPosY + gCurrentObject->oGraphYOffset;
++        gCurrentObject->header.gfx.pos[2] = gCurrentObject->oPosZ;
++        gCurrentObject->header.gfx.angle[0] = gCurrentObject->oFaceAnglePitch;
++        gCurrentObject->header.gfx.angle[1] = gCurrentObject->oFaceAngleYaw;
++        gCurrentObject->header.gfx.angle[2] = gCurrentObject->oFaceAngleRoll;
+     }
+ 
+     // Handle visibility of object
+diff --git a/src/game/rendering_graph_node.c b/src/game/rendering_graph_node.c
+index 68027d9..11077c9 100644
+--- a/src/game/rendering_graph_node.c
++++ b/src/game/rendering_graph_node.c
+@@ -829,7 +829,31 @@ static void geo_process_object(struct Object *node) {
+ 
+         // FIXME: correct types
+         if (node->header.gfx.animInfo.curAnim != NULL) {
+-            geo_set_animation_globals(&node->header.gfx.animInfo, hasAnimation);
++            struct Animation *anim = node->header.gfx.animInfo.curAnim;
++            if (hasAnimation) {
++                node->header.gfx.animInfo.animFrame = geo_update_animation_frame(&node->header.gfx.animInfo, &node->header.gfx.animInfo.animFrameAccelAssist);
++            }
++            node->header.gfx.animInfo.animTimer = gAreaUpdateCounter;
++            if (anim->flags & ANIM_FLAG_HOR_TRANS) {
++                gCurrAnimType = ANIM_TYPE_VERTICAL_TRANSLATION;
++            } else if (anim->flags & ANIM_FLAG_VERT_TRANS) {
++                gCurrAnimType = ANIM_TYPE_LATERAL_TRANSLATION;
++            } else if (anim->flags & ANIM_FLAG_6) {
++                gCurrAnimType = ANIM_TYPE_NO_TRANSLATION;
++            } else {
++                gCurrAnimType = ANIM_TYPE_TRANSLATION;
++            }
++
++            gCurrAnimFrame = node->header.gfx.animInfo.animFrame;
++            gCurrAnimEnabled = (anim->flags & ANIM_FLAG_5) == 0;
++            gCurrAnimAttribute = segmented_to_virtual((void *) anim->index);
++            gCurrAnimData = segmented_to_virtual((void *) anim->values);
++
++            if (anim->animYTransDivisor == 0) {
++                gCurrAnimTranslationMultiplier = 1.0f;
++            } else {
++                gCurrAnimTranslationMultiplier = (f32) node->header.gfx.animInfo.animYTrans / (f32) anim->animYTransDivisor;
++            }
+         }
+         if (obj_is_in_view(&node->header.gfx, gMatStack[gMatStackIndex])) {
+             Mtx *mtx = alloc_display_list(sizeof(*mtx));
+@@ -916,7 +940,31 @@ void geo_process_held_object(struct GraphNodeHeldObject *node) {
+         gCurrAnimType = 0;
+         gCurGraphNodeHeldObject = (void *) node;
+         if (node->objNode->header.gfx.animInfo.curAnim != NULL) {
+-            geo_set_animation_globals(&node->objNode->header.gfx.animInfo, hasAnimation);
++            struct Animation *anim = node->objNode->header.gfx.animInfo.curAnim;
++            if (hasAnimation) {
++                node->objNode->header.gfx.animInfo.animFrame = geo_update_animation_frame(&node->objNode->header.gfx.animInfo, &node->objNode->header.gfx.animInfo.animFrameAccelAssist);
++            }
++            node->objNode->header.gfx.animInfo.animTimer = gAreaUpdateCounter;
++            if (anim->flags & ANIM_FLAG_HOR_TRANS) {
++                gCurrAnimType = ANIM_TYPE_VERTICAL_TRANSLATION;
++            } else if (anim->flags & ANIM_FLAG_VERT_TRANS) {
++                gCurrAnimType = ANIM_TYPE_LATERAL_TRANSLATION;
++            } else if (anim->flags & ANIM_FLAG_6) {
++                gCurrAnimType = ANIM_TYPE_NO_TRANSLATION;
++            } else {
++                gCurrAnimType = ANIM_TYPE_TRANSLATION;
++            }
++
++            gCurrAnimFrame = node->objNode->header.gfx.animInfo.animFrame;
++            gCurrAnimEnabled = (anim->flags & ANIM_FLAG_5) == 0;
++            gCurrAnimAttribute = segmented_to_virtual((void *) anim->index);
++            gCurrAnimData = segmented_to_virtual((void *) anim->values);
++
++            if (anim->animYTransDivisor == 0) {
++                gCurrAnimTranslationMultiplier = 1.0f;
++            } else {
++                gCurrAnimTranslationMultiplier = (f32) node->objNode->header.gfx.animInfo.animYTrans / (f32) anim->animYTransDivisor;
++            }
+         }
+ 
+         geo_process_node_and_siblings(node->objNode->header.gfx.sharedChild);
+-- 
+2.56.1
+

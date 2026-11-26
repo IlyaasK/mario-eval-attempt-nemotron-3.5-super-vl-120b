@@ -1,0 +1,82 @@
+From 934580c0a4f10767ae74bf185f3bd22e1754efae Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 13:56:01 +0000
+Subject: [PATCH 27/58] Milestone: unroll guMtxF2L loops - console speedup
+ 1.4276x
+
+---
+ lib/src/guMtxF2L.c | 56 +++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 45 insertions(+), 11 deletions(-)
+
+diff --git a/lib/src/guMtxF2L.c b/lib/src/guMtxF2L.c
+index e2ec7a5..f8616de 100644
+--- a/lib/src/guMtxF2L.c
++++ b/lib/src/guMtxF2L.c
+@@ -7,19 +7,53 @@
+ 
+ #ifndef GBI_FLOATS
+ void guMtxF2L(float mf[4][4], Mtx *m) {
+-    int r, c;
+-    s32 tmp1;
+-    s32 tmp2;
++    s32 tmp1, tmp2;
+     s32 *m1 = &m->m[0][0];
+     s32 *m2 = &m->m[2][0];
+-    for (r = 0; r < 4; r++) {
+-        for (c = 0; c < 2; c++) {
+-            tmp1 = mf[r][2 * c] * 65536.0f;
+-            tmp2 = mf[r][2 * c + 1] * 65536.0f;
+-            *m1++ = (tmp1 & 0xffff0000) | ((tmp2 >> 0x10) & 0xffff);
+-            *m2++ = ((tmp1 << 0x10) & 0xffff0000) | (tmp2 & 0xffff);
+-        }
+-    }
++
++    // Row 0
++    tmp1 = mf[0][0] * 65536.0f;
++    tmp2 = mf[0][1] * 65536.0f;
++    *m1++ = (tmp1 & 0xffff0000) | ((tmp2 >> 0x10) & 0xffff);
++    *m2++ = ((tmp1 << 0x10) & 0xffff0000) | (tmp2 & 0xffff);
++
++    tmp1 = mf[0][2] * 65536.0f;
++    tmp2 = mf[0][3] * 65536.0f;
++    *m1++ = (tmp1 & 0xffff0000) | ((tmp2 >> 0x10) & 0xffff);
++    *m2++ = ((tmp1 << 0x10) & 0xffff0000) | (tmp2 & 0xffff);
++
++    // Row 1
++    tmp1 = mf[1][0] * 65536.0f;
++    tmp2 = mf[1][1] * 65536.0f;
++    *m1++ = (tmp1 & 0xffff0000) | ((tmp2 >> 0x10) & 0xffff);
++    *m2++ = ((tmp1 << 0x10) & 0xffff0000) | (tmp2 & 0xffff);
++
++    tmp1 = mf[1][2] * 65536.0f;
++    tmp2 = mf[1][3] * 65536.0f;
++    *m1++ = (tmp1 & 0xffff0000) | ((tmp2 >> 0x10) & 0xffff);
++    *m2++ = ((tmp1 << 0x10) & 0xffff0000) | (tmp2 & 0xffff);
++
++    // Row 2
++    tmp1 = mf[2][0] * 65536.0f;
++    tmp2 = mf[2][1] * 65536.0f;
++    *m1++ = (tmp1 & 0xffff0000) | ((tmp2 >> 0x10) & 0xffff);
++    *m2++ = ((tmp1 << 0x10) & 0xffff0000) | (tmp2 & 0xffff);
++
++    tmp1 = mf[2][2] * 65536.0f;
++    tmp2 = mf[2][3] * 65536.0f;
++    *m1++ = (tmp1 & 0xffff0000) | ((tmp2 >> 0x10) & 0xffff);
++    *m2++ = ((tmp1 << 0x10) & 0xffff0000) | (tmp2 & 0xffff);
++
++    // Row 3
++    tmp1 = mf[3][0] * 65536.0f;
++    tmp2 = mf[3][1] * 65536.0f;
++    *m1++ = (tmp1 & 0xffff0000) | ((tmp2 >> 0x10) & 0xffff);
++    *m2++ = ((tmp1 << 0x10) & 0xffff0000) | (tmp2 & 0xffff);
++
++    tmp1 = mf[3][2] * 65536.0f;
++    tmp2 = mf[3][3] * 65536.0f;
++    *m1++ = (tmp1 & 0xffff0000) | ((tmp2 >> 0x10) & 0xffff);
++    *m2++ = ((tmp1 << 0x10) & 0xffff0000) | (tmp2 & 0xffff);
+ }
+ 
+ void guMtxL2F(float mf[4][4], Mtx *m) {
+-- 
+2.56.1
+

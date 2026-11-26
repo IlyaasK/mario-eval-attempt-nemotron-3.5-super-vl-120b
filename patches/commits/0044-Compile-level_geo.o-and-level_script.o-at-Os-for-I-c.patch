@@ -1,0 +1,31 @@
+From 468b6c5852e4bb76fad2a65fde7dbf0e12651387 Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 18:40:04 +0000
+Subject: [PATCH 44/58] Compile level_geo.o and level_script.o at -Os for
+ I-cache fit
+
+level_geo.c and level_script.c run every frame for level setup and
+script execution. -Os reduces code size to fit better in the 16 KB
+direct-mapped I-cache.
+---
+ Makefile | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 61a2c6b..9732a68 100644
+--- a/Makefile
++++ b/Makefile
+@@ -758,8 +758,8 @@ ifeq ($(COMPILER),ido)
+   $(BUILD_DIR)/src/engine/behavior_script.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/engine/behavior_script.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/game/main.o: OPT_FLAGS := -Os
+-  $(BUILD_DIR)/src/game/level_geo.o: OPT_FLAGS := -O2
+-  $(BUILD_DIR)/src/engine/level_script.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/game/level_geo.o: OPT_FLAGS := -Os
++  $(BUILD_DIR)/src/engine/level_script.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/game/mario.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/game/obj_behaviors.o: OPT_FLAGS := -Os
+   $(BUILD_DIR)/src/audio/playback.o: OPT_FLAGS := -O2
+-- 
+2.56.1
+

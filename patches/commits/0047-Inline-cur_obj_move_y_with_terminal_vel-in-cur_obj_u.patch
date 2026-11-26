@@ -1,0 +1,32 @@
+From e7dc60b8a9ec265d42d50cfcaf1cc77d28c0e7b9 Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 18:55:06 +0000
+Subject: [PATCH 47/58] Inline cur_obj_move_y_with_terminal_vel in
+ cur_obj_update
+
+cur_obj_move_y_with_terminal_vel is only called from cur_obj_update.
+Inlining eliminates a function call overhead per object per frame.
+---
+ src/engine/behavior_script.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/engine/behavior_script.c b/src/engine/behavior_script.c
+index 67d7ac2..1e95af5 100644
+--- a/src/engine/behavior_script.c
++++ b/src/engine/behavior_script.c
+@@ -975,7 +975,11 @@ void cur_obj_update(void) {
+     }
+ 
+     if (objFlags & OBJ_FLAG_MOVE_Y_WITH_TERMINAL_VEL) {
+-        cur_obj_move_y_with_terminal_vel();
++        // Inlined cur_obj_move_y_with_terminal_vel (only called here)
++        if (obj->oVelY < -70.0f) {
++            obj->oVelY = -70.0f;
++        }
++        obj->oPosY += obj->oVelY;
+     }
+ 
+     if (objFlags & OBJ_FLAG_TRANSFORM_RELATIVE_TO_PARENT) {
+-- 
+2.56.1
+

@@ -1,0 +1,25 @@
+From f830d9f38548e72aa041588578ca5fe1b5139995 Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 12:16:15 +0000
+Subject: [PATCH 19/58] Milestone: GCC compiler instead of IDO
+
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 2103c13..8d4d26e 100644
+--- a/Makefile
++++ b/Makefile
+@@ -23,7 +23,7 @@ TARGET_N64 ?= 1
+ #   ido - uses the SGI IRIS Development Option compiler, which is used to build
+ #         an original matching N64 ROM
+ #   gcc - uses the GNU C Compiler
+-COMPILER ?= ido
++COMPILER ?= gcc
+ $(eval $(call validate-option,COMPILER,ido gcc))
+ 
+ 
+-- 
+2.56.1
+

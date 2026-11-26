@@ -1,0 +1,463 @@
+diff --git a/Makefile b/Makefile
+index 074d3be..255c27c 100644
+--- a/Makefile
++++ b/Makefile
+@@ -23,7 +23,7 @@ TARGET_N64 ?= 1
+ #   ido - uses the SGI IRIS Development Option compiler, which is used to build
+ #         an original matching N64 ROM
+ #   gcc - uses the GNU C Compiler
+-COMPILER ?= ido
++COMPILER ?= gcc
+ $(eval $(call validate-option,COMPILER,ido gcc))
+ 
+ 
+@@ -45,7 +45,7 @@ ifeq      ($(VERSION),jp)
+ else ifeq ($(VERSION),us)
+   DEFINES   += VERSION_US=1
+   OPT_FLAGS := -g
+-  GRUCODE   ?= f3d_old
++  GRUCODE   ?= f3dex2
+   VERSION_JP_US  ?= true
+   VERSION_SH_CN  ?= false
+ else ifeq ($(VERSION),eu)
+@@ -112,7 +112,7 @@ ifeq      ($(COMPILER),ido)
+ else ifeq ($(COMPILER),gcc)
+   NON_MATCHING := 1
+   MIPSISET     := -mips3
+-  OPT_FLAGS    := -O2 -fno-fast-math
++  OPT_FLAGS    := -O3 -fno-fast-math
+ endif
+ 
+ 
+@@ -748,11 +748,26 @@ ifeq ($(COMPILER),ido)
+   $(BUILD_DIR)/bin/%.o:              OPT_FLAGS := -g
+   $(BUILD_DIR)/src/goddard/%.o:      OPT_FLAGS := -g
+   $(BUILD_DIR)/src/goddard/%.o:      MIPSISET := -mips1
+-  $(BUILD_DIR)/lib/asm/__osDisableInt.o: MIPSISET := -mips2
+-  $(BUILD_DIR)/lib/asm/bcopy.o:      MIPSISET := -mips2
+-  $(BUILD_DIR)/lib/src/%.o:          OPT_FLAGS :=
+-  $(BUILD_DIR)/lib/src/math/%.o:     OPT_FLAGS := -O2
+-  $(BUILD_DIR)/lib/src/math/ll%.o:   OPT_FLAGS :=
++  $(BUILD_DIR)/src/game/rendering_graph_node.o: OPT_FLAGS := -O3
++  $(BUILD_DIR)/src/engine/graph_node.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/engine/surface_collision.o: OPT_FLAGS := -Os
++  $(BUILD_DIR)/src/engine/math_util.o: OPT_FLAGS := -O3
++  $(BUILD_DIR)/src/game/obj_behaviors_2.o: OPT_FLAGS := -O3
++  $(BUILD_DIR)/src/game/object_helpers.o: OPT_FLAGS := -O3
++  $(BUILD_DIR)/src/game/camera.o: OPT_FLAGS := -O3
++  $(BUILD_DIR)/src/engine/behavior_script.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/engine/behavior_script.o: OPT_FLAGS := -O3
++  $(BUILD_DIR)/src/game/main.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/game/level_geo.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/engine/level_script.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/game/mario.o: OPT_FLAGS := -O3
++  $(BUILD_DIR)/src/game/obj_behaviors.o: OPT_FLAGS := -O3
++  $(BUILD_DIR)/src/game/obj_behaviors.o: OPT_FLAGS := -O3
++  $(BUILD_DIR)/src/audio/playback.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/audio/effects.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/audio/seqplayer.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/audio/external.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/engine/surface_collision.o: OPT_FLAGS := -O3
+   $(BUILD_DIR)/lib/src/math/ll%.o:   MIPSISET := -mips3 -32
+   $(BUILD_DIR)/lib/src/ldiv.o:       OPT_FLAGS := -O2
+   $(BUILD_DIR)/lib/src/string.o:     OPT_FLAGS := -O2
+diff --git a/lib/src/guMtxF2L.c b/lib/src/guMtxF2L.c
+index e2ec7a5..f8616de 100644
+--- a/lib/src/guMtxF2L.c
++++ b/lib/src/guMtxF2L.c
+@@ -7,19 +7,53 @@
+ 
+ #ifndef GBI_FLOATS
+ void guMtxF2L(float mf[4][4], Mtx *m) {
+-    int r, c;
+-    s32 tmp1;
+-    s32 tmp2;
++    s32 tmp1, tmp2;
+     s32 *m1 = &m->m[0][0];
+     s32 *m2 = &m->m[2][0];
+-    for (r = 0; r < 4; r++) {
+-        for (c = 0; c < 2; c++) {
+-            tmp1 = mf[r][2 * c] * 65536.0f;
+-            tmp2 = mf[r][2 * c + 1] * 65536.0f;
+-            *m1++ = (tmp1 & 0xffff0000) | ((tmp2 >> 0x10) & 0xffff);
+-            *m2++ = ((tmp1 << 0x10) & 0xffff0000) | (tmp2 & 0xffff);
+-        }
+-    }
++
++    // Row 0
++    tmp1 = mf[0][0] * 65536.0f;
++    tmp2 = mf[0][1] * 65536.0f;
++    *m1++ = (tmp1 & 0xffff0000) | ((tmp2 >> 0x10) & 0xffff);
++    *m2++ = ((tmp1 << 0x10) & 0xffff0000) | (tmp2 & 0xffff);
++
++    tmp1 = mf[0][2] * 65536.0f;
++    tmp2 = mf[0][3] * 65536.0f;
++    *m1++ = (tmp1 & 0xffff0000) | ((tmp2 >> 0x10) & 0xffff);
++    *m2++ = ((tmp1 << 0x10) & 0xffff0000) | (tmp2 & 0xffff);
++
++    // Row 1
++    tmp1 = mf[1][0] * 65536.0f;
++    tmp2 = mf[1][1] * 65536.0f;
++    *m1++ = (tmp1 & 0xffff0000) | ((tmp2 >> 0x10) & 0xffff);
++    *m2++ = ((tmp1 << 0x10) & 0xffff0000) | (tmp2 & 0xffff);
++
++    tmp1 = mf[1][2] * 65536.0f;
++    tmp2 = mf[1][3] * 65536.0f;
++    *m1++ = (tmp1 & 0xffff0000) | ((tmp2 >> 0x10) & 0xffff);
++    *m2++ = ((tmp1 << 0x10) & 0xffff0000) | (tmp2 & 0xffff);
++
++    // Row 2
++    tmp1 = mf[2][0] * 65536.0f;
++    tmp2 = mf[2][1] * 65536.0f;
++    *m1++ = (tmp1 & 0xffff0000) | ((tmp2 >> 0x10) & 0xffff);
++    *m2++ = ((tmp1 << 0x10) & 0xffff0000) | (tmp2 & 0xffff);
++
++    tmp1 = mf[2][2] * 65536.0f;
++    tmp2 = mf[2][3] * 65536.0f;
++    *m1++ = (tmp1 & 0xffff0000) | ((tmp2 >> 0x10) & 0xffff);
++    *m2++ = ((tmp1 << 0x10) & 0xffff0000) | (tmp2 & 0xffff);
++
++    // Row 3
++    tmp1 = mf[3][0] * 65536.0f;
++    tmp2 = mf[3][1] * 65536.0f;
++    *m1++ = (tmp1 & 0xffff0000) | ((tmp2 >> 0x10) & 0xffff);
++    *m2++ = ((tmp1 << 0x10) & 0xffff0000) | (tmp2 & 0xffff);
++
++    tmp1 = mf[3][2] * 65536.0f;
++    tmp2 = mf[3][3] * 65536.0f;
++    *m1++ = (tmp1 & 0xffff0000) | ((tmp2 >> 0x10) & 0xffff);
++    *m2++ = ((tmp1 << 0x10) & 0xffff0000) | (tmp2 & 0xffff);
+ }
+ 
+ void guMtxL2F(float mf[4][4], Mtx *m) {
+diff --git a/src/engine/behavior_script.c b/src/engine/behavior_script.c
+index 3d2fea1..8cfc35a 100644
+--- a/src/engine/behavior_script.c
++++ b/src/engine/behavior_script.c
+@@ -917,7 +917,10 @@ void cur_obj_update(void) {
+ 
+     // Calculate the distance from the object to Mario.
+     if (objFlags & OBJ_FLAG_COMPUTE_DIST_TO_MARIO) {
+-        gCurrentObject->oDistanceToMario = dist_between_objects(gCurrentObject, gMarioObject);
++        f32 dx = gCurrentObject->oPosX - gMarioObject->oPosX;
++        f32 dy = gCurrentObject->oPosY - gMarioObject->oPosY;
++        f32 dz = gCurrentObject->oPosZ - gMarioObject->oPosZ;
++        gCurrentObject->oDistanceToMario = sqrtf(dx * dx + dy * dy + dz * dz);
+         distanceFromMario = gCurrentObject->oDistanceToMario;
+     } else {
+         distanceFromMario = 0.0f;
+@@ -965,7 +968,6 @@ void cur_obj_update(void) {
+     if (objFlags & OBJ_FLAG_SET_FACE_YAW_TO_MOVE_YAW) {
+         gCurrentObject->oFaceAngleYaw = gCurrentObject->oMoveAngleYaw;
+     }
+-
+     if (objFlags & OBJ_FLAG_MOVE_XZ_USING_FVEL) {
+         cur_obj_move_xz_using_fvel_and_yaw();
+     }
+@@ -983,7 +985,12 @@ void cur_obj_update(void) {
+     }
+ 
+     if (objFlags & OBJ_FLAG_UPDATE_GFX_POS_AND_ANGLE) {
+-        obj_update_gfx_pos_and_angle(gCurrentObject);
++        gCurrentObject->header.gfx.pos[0] = gCurrentObject->oPosX;
++        gCurrentObject->header.gfx.pos[1] = gCurrentObject->oPosY + gCurrentObject->oGraphYOffset;
++        gCurrentObject->header.gfx.pos[2] = gCurrentObject->oPosZ;
++        gCurrentObject->header.gfx.angle[0] = gCurrentObject->oFaceAnglePitch;
++        gCurrentObject->header.gfx.angle[1] = gCurrentObject->oFaceAngleYaw;
++        gCurrentObject->header.gfx.angle[2] = gCurrentObject->oFaceAngleRoll;
+     }
+ 
+     // Handle visibility of object
+diff --git a/src/engine/math_util.c b/src/engine/math_util.c
+index 72fa625..48628e2 100644
+--- a/src/engine/math_util.c
++++ b/src/engine/math_util.c
+@@ -489,47 +489,39 @@ void mtxf_align_terrain_triangle(Mat4 mtx, Vec3f pos, s16 yaw, f32 radius) {
+  * then a.
+  */
+ void mtxf_mul(Mat4 dest, Mat4 a, Mat4 b) {
+-    Mat4 temp;
+-    register f32 entry0;
+-    register f32 entry1;
+-    register f32 entry2;
++    // Pre-load row 0 of 'a' into registers. Process one column of 'b' at a
++    // time to keep register pressure low and avoid spilling.
++    register f32 a00, a01, a02;
++    register f32 b00, b10, b20, b30;
++    register f32 b01, b11, b21, b31;
++    register f32 b02, b12, b22, b32;
+ 
+-    // column 0
+-    entry0 = a[0][0];
+-    entry1 = a[0][1];
+-    entry2 = a[0][2];
+-    temp[0][0] = entry0 * b[0][0] + entry1 * b[1][0] + entry2 * b[2][0];
+-    temp[0][1] = entry0 * b[0][1] + entry1 * b[1][1] + entry2 * b[2][1];
+-    temp[0][2] = entry0 * b[0][2] + entry1 * b[1][2] + entry2 * b[2][2];
++    // Load all of b's columns (each column is reused by all rows of a).
++    b00 = b[0][0]; b10 = b[1][0]; b20 = b[2][0]; b30 = b[3][0];
++    b01 = b[0][1]; b11 = b[1][1]; b21 = b[2][1]; b31 = b[3][1];
++    b02 = b[0][2]; b12 = b[1][2]; b22 = b[2][2]; b32 = b[3][2];
+ 
+-    // column 1
+-    entry0 = a[1][0];
+-    entry1 = a[1][1];
+-    entry2 = a[1][2];
+-    temp[1][0] = entry0 * b[0][0] + entry1 * b[1][0] + entry2 * b[2][0];
+-    temp[1][1] = entry0 * b[0][1] + entry1 * b[1][1] + entry2 * b[2][1];
+-    temp[1][2] = entry0 * b[0][2] + entry1 * b[1][2] + entry2 * b[2][2];
++    // Load row 0 of a and process column 0 of dest.
++    a00 = a[0][0]; a01 = a[0][1]; a02 = a[0][2];
++    dest[0][0] = a00 * b00 + a01 * b10 + a02 * b20;
++    dest[1][0] = a[1][0] * b00 + a[1][1] * b10 + a[1][2] * b20;
++    dest[2][0] = a[2][0] * b00 + a[2][1] * b10 + a[2][2] * b20;
++    dest[3][0] = a[3][0] * b00 + a[3][1] * b10 + a[3][2] * b20 + b30;
+ 
+-    // column 2
+-    entry0 = a[2][0];
+-    entry1 = a[2][1];
+-    entry2 = a[2][2];
+-    temp[2][0] = entry0 * b[0][0] + entry1 * b[1][0] + entry2 * b[2][0];
+-    temp[2][1] = entry0 * b[0][1] + entry1 * b[1][1] + entry2 * b[2][1];
+-    temp[2][2] = entry0 * b[0][2] + entry1 * b[1][2] + entry2 * b[2][2];
++    // Process column 1 of dest.
++    dest[0][1] = a00 * b01 + a01 * b11 + a02 * b21;
++    dest[1][1] = a[1][0] * b01 + a[1][1] * b11 + a[1][2] * b21;
++    dest[2][1] = a[2][0] * b01 + a[2][1] * b11 + a[2][2] * b21;
++    dest[3][1] = a[3][0] * b01 + a[3][1] * b11 + a[3][2] * b21 + b31;
+ 
+-    // column 3
+-    entry0 = a[3][0];
+-    entry1 = a[3][1];
+-    entry2 = a[3][2];
+-    temp[3][0] = entry0 * b[0][0] + entry1 * b[1][0] + entry2 * b[2][0] + b[3][0];
+-    temp[3][1] = entry0 * b[0][1] + entry1 * b[1][1] + entry2 * b[2][1] + b[3][1];
+-    temp[3][2] = entry0 * b[0][2] + entry1 * b[1][2] + entry2 * b[2][2] + b[3][2];
++    // Process column 2 of dest.
++    dest[0][2] = a00 * b02 + a01 * b12 + a02 * b22;
++    dest[1][2] = a[1][0] * b02 + a[1][1] * b12 + a[1][2] * b22;
++    dest[2][2] = a[2][0] * b02 + a[2][1] * b12 + a[2][2] * b22;
++    dest[3][2] = a[3][0] * b02 + a[3][1] * b12 + a[3][2] * b22 + b32;
+ 
+-    temp[0][3] = temp[1][3] = temp[2][3] = 0;
+-    temp[3][3] = 1;
+-
+-    mtxf_copy(dest, temp);
++    dest[0][3] = dest[1][3] = dest[2][3] = 0;
++    dest[3][3] = 1;
+ }
+ 
+ /**
+@@ -576,17 +568,29 @@ void mtxf_to_mtx(Mtx *dest, Mat4 src) {
+     // guMtxF2L function. This helps little-endian systems, as well.
+     guMtxF2L(src, dest);
+ #else
+-    s32 asFixedPoint;
+-    register s32 i;
++    register f32 *t1 = (f32 *) src;
+     register s16 *a3 = (s16 *) dest;      // all integer parts stored in first 16 bytes
+     register s16 *t0 = (s16 *) dest + 16; // all fraction parts stored in last 16 bytes
+-    register f32 *t1 = (f32 *) src;
++    s32 v;
+ 
+-    for (i = 0; i < 16; i++) {
+-        asFixedPoint = *t1++ * (1 << 16); //! float-to-integer conversion responsible for PU crashes
+-        *a3++ = GET_HIGH_S16_OF_32(asFixedPoint); // integer part
+-        *t0++ = GET_LOW_S16_OF_32(asFixedPoint);  // fraction part
+-    }
++    // Unrolled: for each matrix element in row-major order, store its
++    // 16.16 fixed-point high half (integer part) then low half (fraction).
++    v = t1[0] * (1 << 16); a3[0] = (s16)(v >> 16); t0[0] = (s16)(v & 0xFFFF);
++    v = t1[1] * (1 << 16); a3[1] = (s16)(v >> 16); t0[1] = (s16)(v & 0xFFFF);
++    v = t1[2] * (1 << 16); a3[2] = (s16)(v >> 16); t0[2] = (s16)(v & 0xFFFF);
++    v = t1[3] * (1 << 16); a3[3] = (s16)(v >> 16); t0[3] = (s16)(v & 0xFFFF);
++    v = t1[4] * (1 << 16); a3[4] = (s16)(v >> 16); t0[4] = (s16)(v & 0xFFFF);
++    v = t1[5] * (1 << 16); a3[5] = (s16)(v >> 16); t0[5] = (s16)(v & 0xFFFF);
++    v = t1[6] * (1 << 16); a3[6] = (s16)(v >> 16); t0[6] = (s16)(v & 0xFFFF);
++    v = t1[7] * (1 << 16); a3[7] = (s16)(v >> 16); t0[7] = (s16)(v & 0xFFFF);
++    v = t1[8] * (1 << 16); a3[8] = (s16)(v >> 16); t0[8] = (s16)(v & 0xFFFF);
++    v = t1[9] * (1 << 16); a3[9] = (s16)(v >> 16); t0[9] = (s16)(v & 0xFFFF);
++    v = t1[10] * (1 << 16); a3[10] = (s16)(v >> 16); t0[10] = (s16)(v & 0xFFFF);
++    v = t1[11] * (1 << 16); a3[11] = (s16)(v >> 16); t0[11] = (s16)(v & 0xFFFF);
++    v = t1[12] * (1 << 16); a3[12] = (s16)(v >> 16); t0[12] = (s16)(v & 0xFFFF);
++    v = t1[13] * (1 << 16); a3[13] = (s16)(v >> 16); t0[13] = (s16)(v & 0xFFFF);
++    v = t1[14] * (1 << 16); a3[14] = (s16)(v >> 16); t0[14] = (s16)(v & 0xFFFF);
++    v = t1[15] * (1 << 16); a3[15] = (s16)(v >> 16); t0[15] = (s16)(v & 0xFFFF);
+ #endif
+ }
+ 
+diff --git a/src/engine/surface_collision.c b/src/engine/surface_collision.c
+index 741307b..bbaafee 100644
+--- a/src/engine/surface_collision.c
++++ b/src/engine/surface_collision.c
+@@ -235,6 +235,13 @@ static struct Surface *find_ceil_from_list(struct SurfaceNode *surfaceNode, s32
+         surf = surfaceNode->surface;
+         surfaceNode = surfaceNode->next;
+ 
++        // Y-bounds pre-filter: skip triangles that cannot contain a ceiling at
++        // this height. The ceiling test accepts height >= y - 78, so a triangle
++        // whose highest point is below y - 78 can never qualify.
++        if (y > surf->upperY + 78) {
++            continue;
++        }
++
+         x1 = surf->vertex1[0];
+         z1 = surf->vertex1[2];
+         z2 = surf->vertex2[2];
+@@ -411,6 +418,13 @@ static struct Surface *find_floor_from_list(struct SurfaceNode *surfaceNode, s32
+         surf = surfaceNode->surface;
+         surfaceNode = surfaceNode->next;
+ 
++        // Y-bounds pre-filter: skip triangles that cannot contain a floor at
++        // this height. The floor test below accepts height <= y + 78, so a
++        // triangle whose lowest point is above y + 78 can never qualify.
++        if (y < surf->lowerY - 78) {
++            continue;
++        }
++
+         x1 = surf->vertex1[0];
+         z1 = surf->vertex1[2];
+         x2 = surf->vertex2[0];
+diff --git a/src/game/object_helpers.c b/src/game/object_helpers.c
+index 54cf24f..447f0cc 100644
+--- a/src/game/object_helpers.c
++++ b/src/game/object_helpers.c
+@@ -1409,9 +1409,13 @@ s16 abs_angle_diff(s16 x0, s16 x1) {
+ }
+ 
+ void cur_obj_move_xz_using_fvel_and_yaw(void) {
++    if (o->oForwardVel == 0.0f) {
++        o->oVelX = 0.0f;
++        o->oVelZ = 0.0f;
++        return;
++    }
+     o->oVelX = o->oForwardVel * sins(o->oMoveAngleYaw);
+     o->oVelZ = o->oForwardVel * coss(o->oMoveAngleYaw);
+-
+     o->oPosX += o->oVelX;
+     o->oPosZ += o->oVelZ;
+ }
+diff --git a/src/game/rendering_graph_node.c b/src/game/rendering_graph_node.c
+index 2343068..11077c9 100644
+--- a/src/game/rendering_graph_node.c
++++ b/src/game/rendering_graph_node.c
+@@ -71,12 +71,11 @@ struct RenderModeContainer {
+     u32 modes[8];
+ };
+ 
+-/* Rendermode settings for cycle 1 for all 8 layers. */
+ struct RenderModeContainer renderModeTable_1Cycle[2] = { { {
+-    G_RM_OPA_SURF,
+-    G_RM_AA_OPA_SURF,
+-    G_RM_AA_OPA_SURF,
+-    G_RM_AA_OPA_SURF,
++    G_RM_RA_OPA_SURF,
++    G_RM_RA_OPA_SURF,
++    G_RM_RA_OPA_SURF,
++    G_RM_RA_OPA_SURF,
+     G_RM_AA_TEX_EDGE,
+     G_RM_AA_XLU_SURF,
+     G_RM_AA_XLU_SURF,
+@@ -84,8 +83,8 @@ struct RenderModeContainer renderModeTable_1Cycle[2] = { { {
+     } },
+     { {
+     /* z-buffered */
+-    G_RM_ZB_OPA_SURF,
+-    G_RM_AA_ZB_OPA_SURF,
++    G_RM_RA_ZB_OPA_SURF,
++    G_RM_RA_ZB_OPA_SURF,
+     G_RM_AA_ZB_OPA_DECAL,
+     G_RM_AA_ZB_OPA_INTER,
+     G_RM_AA_ZB_TEX_EDGE,
+@@ -96,10 +95,10 @@ struct RenderModeContainer renderModeTable_1Cycle[2] = { { {
+ 
+ /* Rendermode settings for cycle 2 for all 8 layers. */
+ struct RenderModeContainer renderModeTable_2Cycle[2] = { { {
+-    G_RM_OPA_SURF2,
+-    G_RM_AA_OPA_SURF2,
+-    G_RM_AA_OPA_SURF2,
+-    G_RM_AA_OPA_SURF2,
++    G_RM_RA_OPA_SURF2,
++    G_RM_RA_OPA_SURF2,
++    G_RM_RA_OPA_SURF2,
++    G_RM_RA_OPA_SURF2,
+     G_RM_AA_TEX_EDGE2,
+     G_RM_AA_XLU_SURF2,
+     G_RM_AA_XLU_SURF2,
+@@ -107,8 +106,8 @@ struct RenderModeContainer renderModeTable_2Cycle[2] = { { {
+     } },
+     { {
+     /* z-buffered */
+-    G_RM_ZB_OPA_SURF2,
+-    G_RM_AA_ZB_OPA_SURF2,
++    G_RM_RA_ZB_OPA_SURF2,
++    G_RM_RA_ZB_OPA_SURF2,
+     G_RM_AA_ZB_OPA_DECAL2,
+     G_RM_AA_ZB_OPA_INTER2,
+     G_RM_AA_ZB_TEX_EDGE2,
+@@ -830,7 +829,31 @@ static void geo_process_object(struct Object *node) {
+ 
+         // FIXME: correct types
+         if (node->header.gfx.animInfo.curAnim != NULL) {
+-            geo_set_animation_globals(&node->header.gfx.animInfo, hasAnimation);
++            struct Animation *anim = node->header.gfx.animInfo.curAnim;
++            if (hasAnimation) {
++                node->header.gfx.animInfo.animFrame = geo_update_animation_frame(&node->header.gfx.animInfo, &node->header.gfx.animInfo.animFrameAccelAssist);
++            }
++            node->header.gfx.animInfo.animTimer = gAreaUpdateCounter;
++            if (anim->flags & ANIM_FLAG_HOR_TRANS) {
++                gCurrAnimType = ANIM_TYPE_VERTICAL_TRANSLATION;
++            } else if (anim->flags & ANIM_FLAG_VERT_TRANS) {
++                gCurrAnimType = ANIM_TYPE_LATERAL_TRANSLATION;
++            } else if (anim->flags & ANIM_FLAG_6) {
++                gCurrAnimType = ANIM_TYPE_NO_TRANSLATION;
++            } else {
++                gCurrAnimType = ANIM_TYPE_TRANSLATION;
++            }
++
++            gCurrAnimFrame = node->header.gfx.animInfo.animFrame;
++            gCurrAnimEnabled = (anim->flags & ANIM_FLAG_5) == 0;
++            gCurrAnimAttribute = segmented_to_virtual((void *) anim->index);
++            gCurrAnimData = segmented_to_virtual((void *) anim->values);
++
++            if (anim->animYTransDivisor == 0) {
++                gCurrAnimTranslationMultiplier = 1.0f;
++            } else {
++                gCurrAnimTranslationMultiplier = (f32) node->header.gfx.animInfo.animYTrans / (f32) anim->animYTransDivisor;
++            }
+         }
+         if (obj_is_in_view(&node->header.gfx, gMatStack[gMatStackIndex])) {
+             Mtx *mtx = alloc_display_list(sizeof(*mtx));
+@@ -917,7 +940,31 @@ void geo_process_held_object(struct GraphNodeHeldObject *node) {
+         gCurrAnimType = 0;
+         gCurGraphNodeHeldObject = (void *) node;
+         if (node->objNode->header.gfx.animInfo.curAnim != NULL) {
+-            geo_set_animation_globals(&node->objNode->header.gfx.animInfo, hasAnimation);
++            struct Animation *anim = node->objNode->header.gfx.animInfo.curAnim;
++            if (hasAnimation) {
++                node->objNode->header.gfx.animInfo.animFrame = geo_update_animation_frame(&node->objNode->header.gfx.animInfo, &node->objNode->header.gfx.animInfo.animFrameAccelAssist);
++            }
++            node->objNode->header.gfx.animInfo.animTimer = gAreaUpdateCounter;
++            if (anim->flags & ANIM_FLAG_HOR_TRANS) {
++                gCurrAnimType = ANIM_TYPE_VERTICAL_TRANSLATION;
++            } else if (anim->flags & ANIM_FLAG_VERT_TRANS) {
++                gCurrAnimType = ANIM_TYPE_LATERAL_TRANSLATION;
++            } else if (anim->flags & ANIM_FLAG_6) {
++                gCurrAnimType = ANIM_TYPE_NO_TRANSLATION;
++            } else {
++                gCurrAnimType = ANIM_TYPE_TRANSLATION;
++            }
++
++            gCurrAnimFrame = node->objNode->header.gfx.animInfo.animFrame;
++            gCurrAnimEnabled = (anim->flags & ANIM_FLAG_5) == 0;
++            gCurrAnimAttribute = segmented_to_virtual((void *) anim->index);
++            gCurrAnimData = segmented_to_virtual((void *) anim->values);
++
++            if (anim->animYTransDivisor == 0) {
++                gCurrAnimTranslationMultiplier = 1.0f;
++            } else {
++                gCurrAnimTranslationMultiplier = (f32) node->objNode->header.gfx.animInfo.animYTrans / (f32) anim->animYTransDivisor;
++            }
+         }
+ 
+         geo_process_node_and_siblings(node->objNode->header.gfx.sharedChild);

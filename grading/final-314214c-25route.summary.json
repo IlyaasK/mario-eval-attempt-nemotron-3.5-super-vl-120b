@@ -1,0 +1,142 @@
+{
+ "version": "3.0",
+ "target": "sm64",
+ "fingerprint": {
+  "grader_version": "3.0",
+  "grader_sha256": "698d84a635b21320cc578459848e783a2d71b4fac647bb716b9d8abb423019e8",
+  "n64run_sha256": "e42186755188272623850a8c1b5edf45496657025acb256863f9459d1a0b5e84",
+  "corpus_config_sha256": "a3de29bdb8a6e6cccc8d239f4b28058f25f35007de7405da5a905d2858b5aeb7",
+  "reference_rom_sha256": "4e5b65ee04aa3ed01e361acb689f2d64b4ae486d3e748db3fdf567526c9e836a"
+ },
+ "gates": {
+  "integrity": {
+   "pass": true,
+   "modified": []
+  },
+  "build": {
+   "pass": true
+  },
+  "play_runtime": {
+   "pass": false,
+   "status": "play_no_video_progress",
+   "scenario": "idle",
+   "returncode": 1,
+   "scenarios": {
+    "idle": {
+     "status": "play_no_video_progress",
+     "failure": "no changing VI output",
+     "frames": 0,
+     "vi_fields": 1200,
+     "footprint_lines": 56203,
+     "play_video_fields": 1142,
+     "play_video_changes": 0,
+     "play_final_video_hash": "af63bd3d3b01b7df",
+     "footprint_bytes": 899248,
+     "highest_line": 233343,
+     "cache_uncached_ops": 0,
+     "cache_cde_unaligned_ops": 0,
+     "cache_kseg1_dirty_synonyms": 0,
+     "dcache_coherence_errors": 42746,
+     "host_seconds": 25.7431
+    }
+   }
+  }
+ },
+ "workloads": {},
+ "rewards": {
+  "console": -1.0,
+  "stutter": -1.0,
+  "speed": -1.0,
+  "rdp": -1.0,
+  "rsp": -1.0,
+  "traffic": -1.0,
+  "memory": -1.0
+ },
+ "speedups": {
+  "console": 0.0,
+  "stutter": 0.0,
+  "speed": 0.0,
+  "rdp": 0.0,
+  "rsp": 0.0,
+  "traffic": 0.0,
+  "memory": 0.0
+ },
+ "cost_saved": {
+  "console": 0.0,
+  "stutter": 0.0,
+  "speed": 0.0,
+  "rdp": 0.0,
+  "rsp": 0.0,
+  "traffic": 0.0,
+  "memory": 0.0
+ },
+ "workload_set": "d08c03e7f5863ef6be246e1b095d341e0d493ec53c86f5203e872025c0d932c6",
+ "rom_sha256": "57998ef8ce7f316dd87f0185c4a4d609ada8fb2014660bea5856580ad3e19136",
+ "rom_bytes": 8388608,
+ "status": "invalid",
+ "reason": "PLAY=1 runtime smoke failed: play_no_video_progress",
+ "failures": [
+  {
+   "gate": "play_runtime",
+   "status": "play_no_video_progress",
+   "scenario": "idle",
+   "returncode": 1,
+   "scenarios": {
+    "idle": {
+     "status": "play_no_video_progress",
+     "failure": "no changing VI output",
+     "frames": 0,
+     "vi_fields": 1200,
+     "footprint_lines": 56203,
+     "play_video_fields": 1142,
+     "play_video_changes": 0,
+     "play_final_video_hash": "af63bd3d3b01b7df",
+     "footprint_bytes": 899248,
+     "highest_line": 233343,
+     "cache_uncached_ops": 0,
+     "cache_cde_unaligned_ops": 0,
+     "cache_kseg1_dirty_synonyms": 0,
+     "dcache_coherence_errors": 42746,
+     "host_seconds": 25.7431
+    }
+   }
+  }
+ ],
+ "fidelity": {
+  "execution": 0.0,
+  "gameplay": 0.0,
+  "video_ssim": 0.0,
+  "audio": 0.0,
+  "hardware": 0.0,
+  "overall": 0.0,
+  "effective_speedups": {
+   "console": 0.0,
+   "stutter": 0.0,
+   "speed": 0.0,
+   "rdp": 0.0,
+   "rsp": 0.0,
+   "traffic": 0.0,
+   "memory": 0.0
+  },
+  "effective_cost_saved": {
+   "console": 0.0,
+   "stutter": 0.0,
+   "speed": 0.0,
+   "rdp": 0.0,
+   "rsp": 0.0,
+   "traffic": 0.0,
+   "memory": 0.0
+  }
+ },
+ "failure_attribution": {
+  "primary_category": "console_play_divergence",
+  "categories": [
+   "console_play_divergence"
+  ],
+  "subcategories": [
+   "play_runtime:play_no_video_progress"
+  ],
+  "public_only_pass": false
+ },
+ "grader_seconds": 26.8
+}

@@ -1,0 +1,28 @@
+From 1fe68ded76c071c8643399c5b70318d54b0080cb Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Tue, 24 Nov 2026 23:03:58 +0000
+Subject: [PATCH 07/58] Milestone: -O2 per-file on audio
+ playback/effects/seqplayer
+
+Console: 1.1754x under IDO, all gates pass.
+---
+ Makefile | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index fbb2154..9ae2947 100644
+--- a/Makefile
++++ b/Makefile
+@@ -753,6 +753,9 @@ ifeq ($(COMPILER),ido)
+   $(BUILD_DIR)/src/game/object_helpers.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/game/camera.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/engine/behavior_script.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/audio/playback.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/audio/effects.o: OPT_FLAGS := -O2
++  $(BUILD_DIR)/src/audio/seqplayer.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/audio/external.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/src/engine/surface_collision.o: OPT_FLAGS := -O2
+   $(BUILD_DIR)/lib/src/math/ll%.o:   MIPSISET := -mips3 -32
+-- 
+2.56.1
+

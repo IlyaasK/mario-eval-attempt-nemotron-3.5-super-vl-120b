@@ -1,0 +1,29 @@
+From 00732ecf376191d3ab6ec999fa9548c56ad15717 Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 19:26:09 +0000
+Subject: [PATCH 55/58] Remove redundant obj->oFlags re-read in cur_obj_update
+
+objFlags was already loaded at function start and oFlags is not modified
+by behavior scripts between loads. Removing the redundant read saves a
+D-cache line load per object per frame.
+---
+ src/engine/behavior_script.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/engine/behavior_script.c b/src/engine/behavior_script.c
+index 1e95af5..894d894 100644
+--- a/src/engine/behavior_script.c
++++ b/src/engine/behavior_script.c
+@@ -957,8 +957,7 @@ void cur_obj_update(void) {
+         (void) (obj->oTimer = 0, obj->oSubAction = 0,
+                 obj->oPrevAction = obj->oAction);
+     }
+-    // Execute various code based on object flags.
+-    objFlags = (s16) obj->oFlags;
++    // Execute various code based on object flags (objFlags already loaded above).
+ 
+     if (objFlags & OBJ_FLAG_SET_FACE_ANGLE_TO_MOVE_ANGLE) {
+         obj_set_face_angle_to_move_angle(obj);
+-- 
+2.56.1
+

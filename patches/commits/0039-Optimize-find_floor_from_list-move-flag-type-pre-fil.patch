@@ -1,0 +1,56 @@
+From 9fdb6125304a62c177afe472a07eb482e7ccc56a Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 18:18:47 +0000
+Subject: [PATCH 39/58] Optimize find_floor_from_list: move flag/type
+ pre-filter before bounds checks
+
+Move NO_CAM_COLLISION and CAMERA_BOUNDARY checks before the expensive
+triangle bounds tests to skip point-in-triangle computation for rejected
+surfaces. find_floor_from_list at 4.94% CPU.
+---
+ src/engine/surface_collision.c | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
+
+diff --git a/src/engine/surface_collision.c b/src/engine/surface_collision.c
+index bbaafee..1457196 100644
+--- a/src/engine/surface_collision.c
++++ b/src/engine/surface_collision.c
+@@ -425,6 +425,17 @@ static struct Surface *find_floor_from_list(struct SurfaceNode *surfaceNode, s32
+             continue;
+         }
+ 
++        // Determine if we are checking for the camera or not.
++        if (gCheckingSurfaceCollisionsForCamera != 0) {
++            if (surf->flags & SURFACE_FLAG_NO_CAM_COLLISION) {
++                continue;
++            }
++        }
++        // If we are not checking for the camera, ignore camera only floors.
++        else if (surf->type == SURFACE_CAMERA_BOUNDARY) {
++            continue;
++        }
++
+         x1 = surf->vertex1[0];
+         z1 = surf->vertex1[2];
+         x2 = surf->vertex2[0];
+@@ -446,17 +457,6 @@ static struct Surface *find_floor_from_list(struct SurfaceNode *surfaceNode, s32
+             continue;
+         }
+ 
+-        // Determine if we are checking for the camera or not.
+-        if (gCheckingSurfaceCollisionsForCamera != 0) {
+-            if (surf->flags & SURFACE_FLAG_NO_CAM_COLLISION) {
+-                continue;
+-            }
+-        }
+-        // If we are not checking for the camera, ignore camera only floors.
+-        else if (surf->type == SURFACE_CAMERA_BOUNDARY) {
+-            continue;
+-        }
+-
+         nx = surf->normal.x;
+         ny = surf->normal.y;
+         nz = surf->normal.z;
+-- 
+2.56.1
+

@@ -1,0 +1,55 @@
+From e2e263e0cd338cf3d6a841e3365ac5dff1d0f243 Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 18:23:34 +0000
+Subject: [PATCH 40/58] Optimize find_ceil_from_list: move flag/type pre-filter
+ before bounds checks
+
+Same reordering as find_floor_from_list: skip NO_CAM_COLLISION and
+CAMERA_BOUNDARY checks before the expensive triangle bounds tests.
+---
+ src/engine/surface_collision.c | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
+
+diff --git a/src/engine/surface_collision.c b/src/engine/surface_collision.c
+index 1457196..781e814 100644
+--- a/src/engine/surface_collision.c
++++ b/src/engine/surface_collision.c
+@@ -242,6 +242,17 @@ static struct Surface *find_ceil_from_list(struct SurfaceNode *surfaceNode, s32
+             continue;
+         }
+ 
++        // Determine if checking for the camera or not.
++        if (gCheckingSurfaceCollisionsForCamera != 0) {
++            if (surf->flags & SURFACE_FLAG_NO_CAM_COLLISION) {
++                continue;
++            }
++        }
++        // Ignore camera only surfaces.
++        else if (surf->type == SURFACE_CAMERA_BOUNDARY) {
++            continue;
++        }
++
+         x1 = surf->vertex1[0];
+         z1 = surf->vertex1[2];
+         z2 = surf->vertex2[2];
+@@ -262,17 +273,6 @@ static struct Surface *find_ceil_from_list(struct SurfaceNode *surfaceNode, s32
+             continue;
+         }
+ 
+-        // Determine if checking for the camera or not.
+-        if (gCheckingSurfaceCollisionsForCamera != 0) {
+-            if (surf->flags & SURFACE_FLAG_NO_CAM_COLLISION) {
+-                continue;
+-            }
+-        }
+-        // Ignore camera only surfaces.
+-        else if (surf->type == SURFACE_CAMERA_BOUNDARY) {
+-            continue;
+-        }
+-
+         {
+             f32 nx = surf->normal.x;
+             f32 ny = surf->normal.y;
+-- 
+2.56.1
+

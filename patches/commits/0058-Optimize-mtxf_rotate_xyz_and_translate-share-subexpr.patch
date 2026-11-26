@@ -1,0 +1,52 @@
+From 314214c0f78ac5ef0f81de11d2f34cae1cbd7529 Mon Sep 17 00:00:00 2001
+From: agent <agent@mario-eval>
+Date: Wed, 25 Nov 2026 19:41:30 +0000
+Subject: [PATCH 58/58] Optimize mtxf_rotate_xyz_and_translate: share
+ subexpressions
+
+Precompute cy*cz, cy*sz, cx*sz, sx*sy, cx*sy once instead of recomputing
+them in multiple matrix elements. Saves multiple f32 multiplications per
+call. mtxf_rotate_xyz_and_translate called per-object in geo_process_object.
+---
+ src/engine/math_util.c | 19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
+
+diff --git a/src/engine/math_util.c b/src/engine/math_util.c
+index 5b7ab87..3382655 100644
+--- a/src/engine/math_util.c
++++ b/src/engine/math_util.c
+@@ -323,18 +323,25 @@ void mtxf_rotate_xyz_and_translate(Mat4 dest, Vec3f b, Vec3s c) {
+     register f32 sz = sins(c[2]);
+     register f32 cz = coss(c[2]);
+ 
+-    dest[0][0] = cy * cz;
+-    dest[0][1] = cy * sz;
++    // Precompute shared products to avoid recomputation.
++    register f32 cy_cz = cy * cz;
++    register f32 cy_sz = cy * sz;
++    register f32 cx_sz = cx * sz;
++    register f32 sx_sy = sx * sy;
++    register f32 cx_sy = cx * sy;
++
++    dest[0][0] = cy_cz;
++    dest[0][1] = cy_sz;
+     dest[0][2] = -sy;
+     dest[0][3] = 0;
+ 
+-    dest[1][0] = sx * sy * cz - cx * sz;
+-    dest[1][1] = sx * sy * sz + cx * cz;
++    dest[1][0] = sx_sy * cz - cx_sz;
++    dest[1][1] = sx_sy * sz + cx * cz;
+     dest[1][2] = sx * cy;
+     dest[1][3] = 0;
+ 
+-    dest[2][0] = cx * sy * cz + sx * sz;
+-    dest[2][1] = cx * sy * sz - sx * cz;
++    dest[2][0] = cx_sy * cz + sx * sz;
++    dest[2][1] = cx_sy * sz - sx * cz;
+     dest[2][2] = cx * cy;
+     dest[2][3] = 0;
+ 
+-- 
+2.56.1
+
